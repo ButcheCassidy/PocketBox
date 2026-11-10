@@ -90,6 +90,7 @@ data class TrackRow(
         lyricsUri = lrcUri,
         hasEmbeddedLyrics = hasEmbeddedLyrics,
         dateAddedMs = dateAdded,
+        sortLetter = titleLetter,
     )
 }
 

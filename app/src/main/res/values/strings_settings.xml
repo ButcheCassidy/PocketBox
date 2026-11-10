@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <!-- Donation reminder (wording as agreed with the owner) -->
+    <string name="donate_title">Enjoying Pocket Box?</string>
+    <string name="donate_body">You\'ve been riding with Pocket Box for a month now. 🤠 How\'s it treating you? It\'s free, has no ads and never tracks you. If it\'s earned a spot on your phone, a small donation helps keep it going.</string>
+    <string name="donate">Donate</string>
+    <string name="maybe_later">Maybe later</string>
+    <string name="no_thanks">No thanks</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_tagline">Your music, your saddlebag. No strings, no signal.</string>
+    <string name="onboarding_description">An offline music player for the songs you keep on your phone.</string>
+    <string name="onboarding_credit">Made by ButcheCassidy - The Nomadic Rebel</string>
+    <string name="get_started">Get started</string>
+    <string name="onboarding_folders_title">Pick your music folders</string>
+    <string name="onboarding_folders_body">Pocket Box only ever sees the folders you pick here, nothing else on your phone. You can add or remove folders later in Settings.</string>
+    <string name="onboarding_look_title">Pick a look</string>
+    <string name="onboarding_done_title">Finding your music</string>
+    <string name="onboarding_done_ready">All set. %1$d songs ready.</string>
+    <string name="start_listening">Start listening</string>
+    <string name="skip_for_now">Skip for now</string>
+    <string name="continue_label">Continue</string>
+    <string name="preview">Preview</string>
+    <string name="preview_title">Song title</string>
+    <string name="preview_artist">Artist</string>
+
+    <!-- Appearance -->
+    <string name="theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="amoled_black">Pure black (AMOLED)</string>
+    <string name="amoled_black_body">Pure black backgrounds in dark mode</string>
+    <string name="color_source">Colours</string>
+    <string name="color_dynamic">Material You</string>
+    <string name="color_dynamic_body">From your wallpaper</string>
+    <string name="color_album">Album art</string>
+    <string name="color_album_body">From the song that\'s playing</string>
+    <string name="color_custom">Custom</string>
+    <string name="color_custom_body">A colour you choose</string>
+    <string name="hue">Hue</string>
+    <string name="tone">Tone</string>
+    <string name="art_shape">Album art shape</string>
+    <string name="now_playing_style">Now Playing background</string>
+    <string name="style_blurred">Blurred art</string>
+    <string name="style_gradient">Gradient</string>
+    <string name="style_plain">Plain</string>
+    <string name="grid_columns">Album grid columns</string>
+    <string name="grid_auto">Auto</string>
+    <string name="haptics">Haptics</string>
+    <string name="tabs">Library tabs</string>
+    <string name="tabs_body">Reorder or hide tabs</string>
+    <string name="move_up">Move up</string>
+    <string name="move_down">Move down</string>
+    <string name="show_shelves">Shelves on the Albums tab</string>
+
+    <!-- Settings home -->
+    <string name="settings_library">Library</string>
+    <string name="settings_library_body">Folders, rescans, short songs</string>
+    <string name="settings_appearance">Appearance</string>
+    <string name="settings_appearance_body">Theme, colours, shapes, tabs</string>
+    <string name="settings_playback">Playback</string>
+    <string name="settings_playback_body">Crossfade, ReplayGain, headphones</string>
+    <string name="settings_audio">Audio</string>
+    <string name="settings_audio_body">Equalizer, bit-perfect USB</string>
+    <string name="settings_privacy">Privacy</string>
+    <string name="settings_privacy_body">Listening history, searches</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_body">Version, licences, support</string>
+    <string name="run_setup_again">Run setup again</string>
+
+    <!-- Library settings -->
+    <string name="music_folders">Music folders</string>
+    <string name="excluded_folders">Excluded subfolders</string>
+    <string name="exclude_subfolder">Exclude a subfolder</string>
+    <string name="include_again">Include again</string>
+    <string name="rescan">Rescan now</string>
+    <string name="rescan_body">Only new or changed files are read</string>
+    <string name="min_length">Hide songs shorter than</string>
+    <string name="seconds">%1$d s</string>
+    <string name="off">Off</string>
+    <string name="no_folders">No folders yet</string>
+    <string name="access_lost_short">Access lost: pick it again</string>
+
+    <!-- Playback settings -->
+    <string name="crossfade">Crossfade</string>
+    <string name="confirm_queue_replace">Ask before clearing songs I queued</string>
+    <string name="pause_on_disconnect">Pause when headphones disconnect</string>
+    <string name="resume_on_bluetooth">Resume when Bluetooth reconnects</string>
+    <string name="resume_on_bluetooth_body">Only if disconnecting paused the music</string>
+    <string name="replaygain">ReplayGain</string>
+    <string name="replaygain_off">Off</string>
+    <string name="replaygain_track">Track</string>
+    <string name="replaygain_album">Album</string>
+    <string name="replaygain_preamp">Pre-amp: %1$s</string>
+
+    <!-- Audio settings -->
+    <string name="equalizer_body">10 bands, bass boost, presets</string>
+    <string name="bit_perfect">Bit-perfect USB output</string>
+    <string name="bit_perfect_body">For USB DACs on Android 14+. Pocket Box asks Android to send each song to the DAC untouched, at its own sample rate and bit depth. Speed, ReplayGain and the equalizer are turned off while it\'s on. If your DAC or Android can\'t do it for a song, playback continues normally and Audio quality says so.</string>
+    <string name="current_output">Current output</string>
+
+    <!-- Equalizer -->
+    <string name="eq_enabled">Equalizer</string>
+    <string name="bass_boost">Bass boost</string>
+    <string name="presets">Presets</string>
+    <string name="save_preset">Save preset</string>
+    <string name="preset_name">Preset name</string>
+    <string name="delete_preset">Delete preset</string>
+    <string name="eq_off_bit_perfect">The equalizer is off while bit-perfect mode is on.</string>
+    <string name="band_hz">%1$s Hz</string>
+    <string name="band_khz">%1$s kHz</string>
+
+    <!-- Privacy -->
+    <string name="pause_history">Pause listening history</string>
+    <string name="pause_history_body">Plays won\'t be recorded while this is on</string>
+    <string name="clear_history">Clear listening history</string>
+    <string name="clear_history_body">Recently played and Most played start fresh</string>
+    <string name="clear_history_confirm">Clear your listening history? This can\'t be undone.</string>
+    <string name="clear_searches">Clear recent searches</string>
+    <string name="clear_art_cache">Clear artwork cache</string>
+    <string name="privacy_note">Everything Pocket Box knows stays on this phone. Nothing is backed up or sent anywhere.</string>
+    <string name="cleared">Cleared</string>
+
+    <!-- About -->
+    <string name="version">Version</string>
+    <string name="made_by">Made by</string>
+    <string name="source_code">Source code</string>
+    <string name="source_code_url" translatable="false">github.com/ButcheCassidy/PocketBox</string>
+    <string name="source_code_note">Source-available under PolyForm Strict 1.0.0. Pocket Box makes no network calls, so the link is shown as text.</string>
+    <string name="licenses">Open-source licences</string>
+    <string name="licenses_body">Libraries Pocket Box is built with</string>
+    <string name="support_pocket_box">Support Pocket Box</string>
+    <string name="support_body">Opens the donation page in your browser</string>
+    <string name="donation_reminders">Donation reminder</string>
+    <string name="donation_reminders_body">One friendly reminder after a month of listening</string>
+    <string name="license_apache">Apache License 2.0</string>
+</resources>

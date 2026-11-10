@@ -59,6 +59,8 @@ data class Track(
     val lyricsUri: String?,
     val hasEmbeddedLyrics: Boolean,
     val dateAddedMs: Long,
+    /** The letter header this song files under in the A–Z list ("#" for numbers and symbols). */
+    val sortLetter: String,
 ) {
     val durationMs: Long get() = quality.durationMs
 }

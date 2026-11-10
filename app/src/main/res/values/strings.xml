@@ -3,4 +3,83 @@
 <resources>
     <string name="app_name" translatable="false">Pocket Box</string>
     <string name="app_author" translatable="false">ButcheCassidy - The Nomadic Rebel</string>
+
+    <!-- Shared -->
+    <string name="back">Back</string>
+    <string name="more_options">More options</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="rename">Rename</string>
+    <string name="undo">Undo</string>
+    <string name="see_all">See all</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+    <string name="library">Library</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="album_art">Album art</string>
+    <string name="unknown">Unknown</string>
+    <string name="separator_dot">%1$s · %2$s</string>
+
+    <!-- Quality badges -->
+    <string name="badge_lossy">Lossy</string>
+    <string name="badge_lossless">Lossless</string>
+    <string name="badge_hires">Hi-Res</string>
+    <string name="badge_hires_lossless">Hi-Res Lossless</string>
+
+    <!-- Song and album actions -->
+    <string name="action_play_next">Play next</string>
+    <string name="action_add_to_queue">Add to queue</string>
+    <string name="action_add_to_playlist">Add to playlist</string>
+    <string name="action_go_to_album">Go to album</string>
+    <string name="action_go_to_artist">Go to artist</string>
+    <string name="action_track_info">Track info</string>
+    <string name="action_favorite">Add to favorites</string>
+    <string name="action_unfavorite">Remove from favorites</string>
+    <string name="action_file_as">File as</string>
+    <string name="action_file_as_auto">Automatic (%1$s)</string>
+    <string name="added_to_queue">Added to queue</string>
+    <string name="playing_next">Playing next</string>
+    <string name="added_to_playlist">Added to %1$s</string>
+    <string name="new_playlist">New playlist</string>
+    <string name="playlist_name">Playlist name</string>
+    <string name="create">Create</string>
+
+    <!-- Queue rules -->
+    <string name="clear_queue_title">Clear queue?</string>
+    <string name="clear_queue_body">Playing this song will clear the songs you queued.</string>
+    <string name="clear_and_play">Clear and play</string>
+    <string name="dont_ask_again">Don\'t ask again</string>
+    <string name="queue_replaced">Queue replaced</string>
+
+    <!-- Track info -->
+    <string name="info_source_quality">Source quality</string>
+    <string name="info_codec">Codec</string>
+    <string name="info_sample_rate">Sample rate</string>
+    <string name="info_bit_depth">Bit depth</string>
+    <string name="info_bitrate">Bitrate</string>
+    <string name="info_channels">Channels</string>
+    <string name="info_file_size">File size</string>
+    <string name="info_duration">Duration</string>
+    <string name="info_file">File</string>
+    <string name="info_folder">Folder</string>
+    <string name="info_replaygain">ReplayGain</string>
+    <string name="info_not_stated">Not stated in file</string>
+    <string name="bitrate_constant">%1$s (constant)</string>
+    <string name="bitrate_variable">%1$s (variable)</string>
+    <string name="bitrate_average">%1$s (average)</string>
+    <string name="channels_mono">Mono</string>
+    <string name="channels_stereo">Stereo</string>
+    <string name="channels_count">%1$d channels</string>
+
+    <!-- Empty states -->
+    <string name="empty_library_title">No music yet</string>
+    <string name="empty_library_body">Add a music folder in Settings and Pocket Box will find your songs.</string>
+    <string name="empty_list">Nothing here yet</string>
+    <string name="add_folder">Add folder</string>
 </resources>

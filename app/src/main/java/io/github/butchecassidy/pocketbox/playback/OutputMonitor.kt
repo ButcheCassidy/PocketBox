@@ -49,8 +49,6 @@ data class OutputInfo(
     val mixerSampleRateHz: Int? = null,
     val bitPerfect: BitPerfectStatus = BitPerfectStatus.Off,
 ) {
-    val bluetoothCodecNote: String? get() = if (kind == OutputKind.BLUETOOTH) "Bluetooth: codec not exposed by Android" else null
-
     /** True when Android's mixer runs at a different rate than the song's own. */
     fun isResampled(sourceRateHz: Int?): Boolean {
         if (sourceRateHz == null) return false

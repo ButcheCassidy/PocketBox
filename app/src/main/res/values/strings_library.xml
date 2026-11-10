@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <string name="reorder">Drag to reorder</string>
+    <string name="shuffle_all">Shuffle all</string>
+    <string name="favorites">Favorites</string>
+    <string name="genres">Genres</string>
+    <string name="years">Years</string>
+    <string name="composers">Composers</string>
+    <string name="recently_played">Recently played</string>
+    <string name="most_played">Most played</string>
+    <string name="recently_added">Recently added</string>
+    <string name="sort">Sort</string>
+    <string name="grid_view">Grid view</string>
+    <string name="list_view">List view</string>
+    <string name="scanning">Scanning… %1$d songs found</string>
+    <string name="scanning_reading">Reading %1$d of %2$d new or changed songs</string>
+    <string name="access_lost">Pocket Box can\'t open \"%1$s\" any more. It may have been moved, or access was removed.</string>
+    <string name="pick_again">Pick it again</string>
+    <string name="remove">Remove</string>
+    <string name="song_count">%1$d songs</string>
+    <string name="album_count">%1$d releases</string>
+    <string name="albums_and_songs">%1$d releases · %2$d songs</string>
+    <string name="import_playlist">Import playlist</string>
+    <string name="export_playlist">Export as .m3u</string>
+    <string name="imported_playlist">Imported \"%1$s\": %2$d songs found, %3$d not in your library</string>
+    <string name="import_failed">That playlist couldn\'t be read</string>
+    <string name="exported_playlist">Playlist exported</string>
+    <string name="export_failed">Couldn\'t save the playlist</string>
+    <string name="delete_playlist_title">Delete playlist?</string>
+    <string name="delete_playlist_body">\"%1$s\" will be deleted. Your songs stay where they are.</string>
+    <string name="disc_number">Disc %1$d</string>
+    <string name="albums_section">Albums</string>
+    <string name="singles_section">Singles &amp; EPs</string>
+    <string name="all_songs">All songs</string>
+    <string name="empty_playlist">This playlist is empty. Add songs from their ⋮ menu.</string>
+    <string name="empty_favorites">Tap the heart on Now Playing to add favorites.</string>
+    <string name="empty_history">Nothing played yet.</string>
+    <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="browse">Browse</string>
+    <string name="letter_rail">Jump to letter</string>
+</resources>

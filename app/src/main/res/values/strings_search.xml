@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <string name="search_hint">Songs, albums, artists</string>
+    <string name="clear_search">Clear search</string>
+    <string name="top_result">Top result</string>
+    <string name="songs">Songs</string>
+    <string name="artists">Artists</string>
+    <string name="close_matches">Close matches</string>
+    <string name="filter_all">All</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_recent">Clear</string>
+    <string name="no_results">Nothing found for \"%1$s\"</string>
+    <string name="no_results_body">Check the spelling, or try fewer words.</string>
+    <string name="quick_all_songs">All songs</string>
+    <string name="quick_all_albums">All albums</string>
+    <string name="quick_all_artists">All artists</string>
+    <string name="result_artist">Artist</string>
+    <string name="result_album">Album · %1$s</string>
+    <string name="result_song">Song · %1$s</string>
+</resources>

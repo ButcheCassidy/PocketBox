@@ -10,6 +10,7 @@ import io.github.butchecassidy.pocketbox.data.repo.EqPresetRepository
 import io.github.butchecassidy.pocketbox.data.repo.HistoryRepository
 import io.github.butchecassidy.pocketbox.data.repo.LibraryRepository
 import io.github.butchecassidy.pocketbox.data.repo.PlaylistRepository
+import io.github.butchecassidy.pocketbox.data.repo.SearchRepository
 import io.github.butchecassidy.pocketbox.data.scan.AudioFiles
 import io.github.butchecassidy.pocketbox.data.scan.FolderAccess
 import io.github.butchecassidy.pocketbox.data.scan.LibraryScanner
@@ -47,6 +48,7 @@ class AppContainer(context: Context) {
     val library by lazy { LibraryRepository(database, cpu) }
     val history by lazy { HistoryRepository(database, settings, io) }
     val playlists by lazy { PlaylistRepository(appContext, database, audioFiles, io) }
+    val search by lazy { SearchRepository(database, library, cpu) }
     val eqPresets by lazy { EqPresetRepository(database, io) }
     val queueStore by lazy { QueueStore(database.playbackDao(), library, io) }
     val outputMonitor by lazy { OutputMonitor(appContext) }
