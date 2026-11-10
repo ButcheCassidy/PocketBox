@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <string name="collapse">Close Now Playing</string>
+    <string name="lyrics">Lyrics</string>
+    <string name="queue">Queue</string>
+    <string name="repeat_off">Repeat off</string>
+    <string name="repeat_all">Repeat all</string>
+    <string name="repeat_one">Repeat one</string>
+    <string name="resampled">Resampled</string>
+    <string name="no_lyrics">No lyrics found</string>
+    <string name="no_lyrics_tip">Put a .lrc file with the same name next to the song, or add lyrics to its tags.</string>
+    <string name="sleep_timer">Sleep timer</string>
+    <string name="speed_and_pitch">Speed &amp; pitch</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="audio_quality">Audio quality</string>
+    <string name="clear_queue">Clear</string>
+    <string name="save_as_playlist">Save as playlist</string>
+    <string name="up_next">Up next</string>
+    <string name="queue_empty">The queue is empty</string>
+    <string name="minutes">%1$d min</string>
+    <string name="end_of_track">End of song</string>
+    <string name="fade_out">Fade out at the end</string>
+    <string name="timer_off">Turn off timer</string>
+    <string name="timer_until">Stops at %1$s</string>
+    <string name="timer_end_of_track_on">Stops at the end of this song</string>
+    <string name="speed">Speed: %1$s×</string>
+    <string name="pitch">Pitch: %1$s×</string>
+    <string name="reset">Reset</string>
+    <string name="speed_off_bit_perfect">Speed and pitch are fixed at 1× while bit-perfect mode is on.</string>
+    <string name="output_title">Output</string>
+    <string name="output_device">Device</string>
+    <string name="output_app_format">Sent to Android</string>
+    <string name="output_mixer">Android mixer</string>
+    <string name="output_mixer_unknown">Not exposed by Android for this output</string>
+    <string name="output_bit_perfect">Bit-perfect</string>
+    <string name="bit_perfect_active">Active: %1$s, %2$s</string>
+    <string name="bit_perfect_off">Off (turn on in Settings → Audio)</string>
+    <string name="bit_perfect_no_usb">Waiting for a USB DAC</string>
+    <string name="bt_codec">Bluetooth codec</string>
+    <string name="bt_codec_not_exposed">Bluetooth: codec not exposed by Android</string>
+    <string name="resampled_title">Why \"Resampled\"?</string>
+    <string name="resampled_body">Android mixes everything it plays at one rate, often 48 kHz. When a song uses a different rate, such as 44.1 kHz from a CD, Android converts it before it reaches your headphones. That\'s normal and usually inaudible. A USB DAC with bit-perfect mode on avoids it.</string>
+</resources>

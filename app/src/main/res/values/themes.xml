@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <!-- Shown by the system for the split second before Compose draws the first frame. -->
+    <style name="Theme.PocketBox.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/brand_teal</item>
+        <item name="postSplashScreenTheme">@style/Theme.PocketBox</item>
+    </style>
+
+    <!-- Window theme only; every visible colour, shape and font comes from the Compose theme. -->
+    <style name="Theme.PocketBox" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<!-- Debug builds only: turn on synchronous hardware memory tagging (MTE) on Pixel 8 and later,
+     so any memory bug in a native library crashes immediately during testing instead of hiding. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application
+        android:memtagMode="sync"
+        tools:targetApi="34" />
+</manifest>

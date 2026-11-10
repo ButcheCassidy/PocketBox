@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<!-- Brand colours used only by the launcher icon and the splash screen (before Compose draws). -->
+<resources>
+    <color name="brand_teal">#FF12343B</color>
+    <color name="brand_cream">#FFF4E3C1</color>
+    <color name="brand_sunset">#FFE07A3F</color>
+    <color name="splash_background">#FFFBF8F3</color>
+</resources>
