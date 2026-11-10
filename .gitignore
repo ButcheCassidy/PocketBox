@@ -1,0 +1,32 @@
+# Build output
+.gradle/
+build/
+*/build/
+captures/
+.kotlin/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.idsig
+output-metadata.json
+
+# Local machine config
+local.properties
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# SECRETS: never commit signing keys or their passwords
+keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+
+# Read-only reference material and setup notes (not part of the app)
+reference-repos
+reference-repos/
+PocketBox_Prompt.md
+LICENSES.md

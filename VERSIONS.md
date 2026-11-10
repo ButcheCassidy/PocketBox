@@ -59,9 +59,16 @@ Checked but **not used**: Hilt (`com.google.dagger:hilt-android` 2.60.1; Pocket 
 |---|---|
 | Gradle wrapper | 9.9.1 |
 | JDK | 21 |
-| compileSdk / targetSdk | 36 |
+| compileSdk | 37 (see note) |
+| targetSdk | 36 |
 | build-tools | 36.0.0 |
 | minSdk | 34 |
+
+**Note on compileSdk.** The prompt asks for compileSdk 36, but every current Compose 1.12 artifact and
+Material 3 1.5.0-rc01 (needed for Expressive) refuse to build against anything below API 37. Pocket Box
+therefore *compiles* against API 37 while *targeting* API 36. compileSdk only decides which APIs the
+compiler knows about; it doesn't change how the app behaves or which phones it installs on. Runtime
+behaviour follows targetSdk 36 (Android 16, what GrapheneOS is based on), and minSdk stays 34.
 
 ## Why each library is here
 

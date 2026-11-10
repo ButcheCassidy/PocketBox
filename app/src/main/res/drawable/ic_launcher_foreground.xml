@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<!-- Pocket Box icon: a small box with a sunset-coloured lid and a music note cut into its face. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/brand_sunset"
+        android:pathData="M31,31h46a4,4 0 0 1 4,4v2a4,4 0 0 1 -4,4h-46a4,4 0 0 1 -4,-4v-2a4,4 0 0 1 4,-4z" />
+    <path
+        android:fillColor="@color/brand_cream"
+        android:fillType="evenOdd"
+        android:pathData="M36,43h36a6,6 0 0 1 6,6v22a6,6 0 0 1 -6,6h-36a6,6 0 0 1 -6,-6v-22a6,6 0 0 1 6,-6z M53,48h3v16a5,5 0 1 1 -3,-4.58z M56,48c3,0 7,1.5 7,6c-1.8,-1.6 -4.2,-2 -7,-2z" />
+</vector>
