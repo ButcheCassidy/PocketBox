@@ -28,7 +28,6 @@ them (prompt section 6A). Everything else in Compose comes from the stable BOM.
 | `androidx.media3:media3-exoplayer` | Google Maven | 1.11.1 | 1.12.0-alpha02 | 1.11.1 |
 | `androidx.media3:media3-session` | Google Maven | 1.11.1 | 1.12.0-alpha02 | 1.11.1 |
 | `androidx.media3:media3-common` | Google Maven | 1.11.1 | 1.12.0-alpha02 | 1.11.1 |
-| `androidx.media3:media3-inspector` | Google Maven | 1.11.1 | 1.12.0-alpha02 | 1.11.1 |
 | `androidx.room:room-runtime` / `room-ktx` / `room-compiler` | Google Maven | 2.8.5 | 2.8.5 | 2.8.5 |
 | `androidx.datastore:datastore-preferences` | Google Maven | 1.3.0 | 1.3.0-rc01 | 1.3.0 |
 | `androidx.documentfile:documentfile` | Google Maven | 1.1.0 | 1.1.0-rc01 | 1.1.0 |
@@ -51,7 +50,8 @@ them (prompt section 6A). Everything else in Compose comes from the stable BOM.
 
 Checked but **not used**: Hilt (`com.google.dagger:hilt-android` 2.60.1; Pocket Box uses manual DI, see
 `docs/ARCHITECTURE.md`), `material-icons-extended` (replaced by Material Symbols Rounded vector drawables),
-`espresso-core`, `navigation-suite`.
+`espresso-core`, `navigation-suite`, `media3-inspector` (Pocket Box has its own small, size-capped tag and
+header readers, which are faster for scanning and read exactly the fields it shows).
 
 ## Tools
 
@@ -86,7 +86,6 @@ behaviour follows targetSdk 36 (Android 16, what GrapheneOS is based on), and mi
 | Core KTX + Splashscreen | Kotlin helpers for Android APIs; the Android 12+ splash screen |
 | Media3 ExoPlayer | The audio engine: gapless playback, decoding, audio sink |
 | Media3 Session | `MediaLibraryService`, notification, lock screen, Bluetooth buttons, system browsing |
-| Media3 Inspector | Reads stream format and tags (sample rate, channels, codec, Vorbis/ID3/MP4 tags) |
 | Room (+ KTX) | Local library database with FTS4 search |
 | DataStore Preferences | Settings and small state, written safely off the main thread |
 | DocumentFile | Walks the folders the user granted through the Storage Access Framework |

@@ -118,6 +118,10 @@ kotlin {
     }
 }
 
+composeCompiler {
+    stabilityConfigurationFiles.add(layout.projectDirectory.file("compose-stability.conf"))
+}
+
 room {
     schemaDirectory("$projectDir/schemas")
 }
@@ -146,7 +150,6 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.session)
     implementation(libs.androidx.media3.common)
-    implementation(libs.androidx.media3.inspector)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
