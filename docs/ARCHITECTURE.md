@@ -35,7 +35,8 @@ Pocket Box follows the layered structure Google recommends for Android apps, wit
 - **Screens** never touch the database or the player directly. They show a single immutable UI-state object from their ViewModel and send user events back.
 - **ViewModels** combine repository `Flow`s into a `StateFlow`, using `stateIn(viewModelScope, WhileSubscribed(5_000), …)` so work stops when nobody is watching.
 - **Domain** code is plain Kotlin with no Android imports wherever possible, so it can be unit-tested on a normal JVM.
-- **Playback** lives in a foreground `MediaLibraryService`. The UI talks to it through a Media3 `MediaController`, exactly like the lock screen, notification, Quick Settings and Bluetooth devices do. There is one source of truth for "what's playing".
+- **Playback** lives in a foreground `MediaLibraryService`. The UI talks to it through a Media3 `MediaController` (wrapped in `PlayerConnection`), exactly like the lock screen, notification, Quick Settings and Bluetooth devices do. There is one source of truth for "what's playing".
+- **Settings are the source of truth for playback options** (speed, pitch, crossfade, ReplayGain, EQ, bit-perfect). The UI writes them to DataStore; the service observes them and applies them. Pocket Box runs in a single process, so a few small pieces of state (sleep-timer state, output info, playback error messages) are shared in-process through the `AppContainer`; commands that change playback always go through the media session.
 
 ## Dependency injection: manual, not Hilt
 
@@ -78,29 +79,38 @@ io.github.butchecassidy.pocketbox
 │   ├── release/                    Album / Single / EP classification
 │   ├── lyrics/                     LRC parser
 │   ├── playlist/                   M3U/M3U8 read/write + path validation
-│   ├── queue/                      Queue engine: shuffle order, repeat, undo
-│   ├── search/                     Normaliser, ranking, highlighting, Damerau-Levenshtein
+│   ├── queue/                      ShuffleSequence: play-once shuffle, insert/remove/move rules
+│   ├── audio/                      ReplayGain maths, equalizer presets and bass-boost curve
+│   ├── search/                     Normaliser, ranking tiers, highlighting, Damerau-Levenshtein
 │   └── support/                    Donation reminder policy
 ├── playback/
-│   ├── PlaybackService.kt          MediaLibraryService + session callbacks
-│   ├── QueueController.kt          Applies the queue engine to ExoPlayer
+│   ├── PlaybackService.kt          MediaLibraryService, session callback, trusted-controller rules
+│   ├── PlayerFactory.kt            ExoPlayer setup (content:// only), VolumeMixer
+│   ├── QueueShuffleOrder.kt        Media3 ShuffleOrder backed by ShuffleSequence
+│   ├── QueueStore.kt               Saves/restores the queue in Room
+│   ├── MediaItems.kt               Track ↔ MediaItem, private art URIs
+│   ├── ArtworkBitmapLoader.kt      Notification/lock-screen art from the local cache
+│   ├── AiffExtractor.kt            AIFF/AIFF-C playback (Media3 has none)
 │   ├── LibraryBrowseTree.kt        Browsing for system UI / connected devices
 │   ├── PlayCountTracker.kt         30 s / 50 % listening rule
-│   ├── SleepTimer.kt, Crossfader.kt, ReplayGainProcessor.kt
-│   ├── effects/                    Equalizer (DynamicsProcessing), bass boost, presets
-│   └── output/                     Output-device monitor, bit-perfect (AudioMixerAttributes)
+│   ├── SleepTimer.kt, Crossfader.kt
+│   ├── AudioEffectsController.kt   10-band DynamicsProcessing EQ + bass boost (Equalizer fallback)
+│   ├── OutputMonitor.kt            Output device, formats, resampling, bit-perfect (AudioMixerAttributes)
+│   ├── PlayerConnection.kt         UI side: MediaController → StateFlows and commands
+│   └── QueueController.kt          UI side: "tap a song" rules, confirm dialog, undo
 ├── widget/                         Jetpack Glance home-screen widget
 └── ui/
     ├── theme/                      MaterialExpressiveTheme, HCT colour schemes, tokens
-    ├── components/                 TrackRow, AlbumCard, ArtImage, dialogs, sheets, chips…
-    ├── navigation/                 Routes, NavHost, adaptive bar/rail
+    ├── components/                 TrackRow, AlbumCard, AlbumRow, ArtistRow, ArtImage, QualityBadge,
+    │                               PocketDialog, PocketSheet, action menus, drag-to-reorder
+    ├── navigation/                 Routes, NavHost, PocketBoxRoot (adaptive bar/rail, mini player)
     ├── onboarding/                 Welcome → Folders → Look → Scan
     ├── library/                    Albums, Singles & EPs, Songs, Artists, Playlists, Folders
     ├── detail/                     Album, artist, playlist, folder pages
     ├── search/                     Expressive search bar + results
     ├── nowplaying/                 Now Playing, mini player, lyrics, queue, quality sheets
-    ├── settings/                   Settings, equalizer, about, licences
-    └── support/                    Donation dialog
+    ├── settings/                   Settings sections, colour picker, equalizer, about, licences
+    └── support/                    Donation reminder dialog
 ```
 
 Other modules:
@@ -117,16 +127,19 @@ Other modules:
 | `playlist/{id}` | Playlist page (reorder, rename, export) | Playlists tab |
 | `folder/{id}` | Folder contents | Folders tab |
 | `shelf/{kind}` | Recently played / Most played / Recently added | Albums tab shelves |
-| `search` | Full-screen search | Search bar / search icon on any tab |
-| `nowplaying` | Now Playing (expands from the mini player) | Mini player, notification, widget |
+| `favorites` | Favourite songs | Playlists tab, library menu |
+| `facets/{type}`, `facet/{type}/{value}` | Genres, years, composers and their songs | Library menu |
+| `search` | Expressive search bar expanding to full-screen search | Search icon on the library, bottom bar |
 | `settings` | Settings home | Library top bar |
 | `settings/{section}` | Library · Appearance · Playback · Audio · Privacy · About | Settings home |
 | `equalizer` | 10-band equalizer + bass boost + presets | Settings → Audio, Now Playing menu |
 | `licenses` | Third-party licences | About |
 
-Bottom sheets (not routes): queue, lyrics, audio-quality details, track info, sleep timer, speed & pitch, song actions, colour picker.
+**Now Playing is an overlay, not a route.** It expands from the mini player over everything (shared-element art transition) and collapses with back, so the library keeps its place underneath.
 
-Adaptive navigation: a bottom navigation bar in portrait and a navigation rail in landscape, chosen from the window size class. The mini player sits above the bar and expands into Now Playing with a shared-element transition.
+Bottom sheets (not routes): queue, lyrics, audio-quality details, track info, sleep timer, speed & pitch, song and release actions.
+
+Adaptive navigation: Library · Search · Settings in an expressive `ShortNavigationBar` on narrow screens and a `WideNavigationRail` at 600 dp and wider (landscape). The mini player sits above the bar.
 
 ## Data model (Room)
 
@@ -142,6 +155,7 @@ Adaptive navigation: a bottom navigation bar in portrait and a navigation rail i
 | `recent_searches` | Recent search terms (clearable) |
 | `queue_items`, `queue_state` | The saved queue, shuffle order and position |
 | `eq_presets` | Saved custom equalizer presets |
+| `excluded_folders` | Subfolders the user left out of the library |
 
 Albums and artists are derived from `tracks` with indexed `GROUP BY` queries, so there is only one copy of the truth.
 
