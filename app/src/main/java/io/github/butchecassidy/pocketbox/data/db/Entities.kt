@@ -211,3 +211,30 @@ data class RecentSearchEntity(
     @PrimaryKey val query: String,
     val searchedAt: Long,
 )
+
+/** The saved play queue, so it survives the app being killed or the phone restarting. */
+@Entity(tableName = "queue_items")
+data class QueueItemEntity(
+    @PrimaryKey val position: Int,
+    val trackId: Long,
+    val isManual: Boolean,
+)
+
+/** Where playback was in the saved queue. There is only ever one row (id 0). */
+@Entity(tableName = "queue_state")
+data class QueueStateEntity(
+    @PrimaryKey val id: Int = 0,
+    val currentIndex: Int,
+    val positionMs: Long,
+    val shuffleEnabled: Boolean,
+    val repeatMode: Int,
+    val shuffleOrder: String,
+)
+
+/** A custom equalizer preset the user saved. */
+@Entity(tableName = "eq_presets", indices = [Index(value = ["name"], unique = true)])
+data class EqPresetEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val bandsDb: String,
+)

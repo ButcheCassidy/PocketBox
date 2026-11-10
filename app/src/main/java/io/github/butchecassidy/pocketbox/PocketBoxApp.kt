@@ -2,6 +2,15 @@
 package io.github.butchecassidy.pocketbox
 
 import android.app.Application
+import io.github.butchecassidy.pocketbox.di.AppContainer
 
-/** Application entry point. */
-class PocketBoxApp : Application()
+/** Application entry point; owns the object graph. */
+class PocketBoxApp : Application() {
+    lateinit var container: AppContainer
+        private set
+
+    override fun onCreate() {
+        super.onCreate()
+        container = AppContainer(this)
+    }
+}

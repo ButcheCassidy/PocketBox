@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b0008f56da5a284079e10a130e609c6f",
+    "identityHash": "7d69fefb5329b0ebc1296cfea515e38d",
     "entities": [
       {
         "tableName": "folders",
@@ -1035,11 +1035,130 @@
             "createSql": "CREATE INDEX IF NOT EXISTS `index_recent_searches_searchedAt` ON `${TABLE_NAME}` (`searchedAt`)"
           }
         ]
+      },
+      {
+        "tableName": "queue_items",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`position` INTEGER NOT NULL, `trackId` INTEGER NOT NULL, `isManual` INTEGER NOT NULL, PRIMARY KEY(`position`))",
+        "fields": [
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "trackId",
+            "columnName": "trackId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isManual",
+            "columnName": "isManual",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "position"
+          ]
+        }
+      },
+      {
+        "tableName": "queue_state",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `currentIndex` INTEGER NOT NULL, `positionMs` INTEGER NOT NULL, `shuffleEnabled` INTEGER NOT NULL, `repeatMode` INTEGER NOT NULL, `shuffleOrder` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "currentIndex",
+            "columnName": "currentIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "positionMs",
+            "columnName": "positionMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shuffleEnabled",
+            "columnName": "shuffleEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatMode",
+            "columnName": "repeatMode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "shuffleOrder",
+            "columnName": "shuffleOrder",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "eq_presets",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `bandsDb` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bandsDb",
+            "columnName": "bandsDb",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_eq_presets_name",
+            "unique": true,
+            "columnNames": [
+              "name"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_eq_presets_name` ON `${TABLE_NAME}` (`name`)"
+          }
+        ]
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b0008f56da5a284079e10a130e609c6f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7d69fefb5329b0ebc1296cfea515e38d')"
     ]
   }
 }

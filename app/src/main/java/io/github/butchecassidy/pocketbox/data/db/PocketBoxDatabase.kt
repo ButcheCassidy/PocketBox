@@ -24,6 +24,9 @@ import androidx.room.RoomDatabase
         FavoriteEntity::class,
         PlayStatsEntity::class,
         RecentSearchEntity::class,
+        QueueItemEntity::class,
+        QueueStateEntity::class,
+        EqPresetEntity::class,
     ],
     version = 1,
     exportSchema = true,
@@ -32,6 +35,7 @@ abstract class PocketBoxDatabase : RoomDatabase() {
     abstract fun libraryDao(): LibraryDao
     abstract fun scanDao(): ScanDao
     abstract fun userDataDao(): UserDataDao
+    abstract fun playbackDao(): PlaybackDao
 
     companion object {
         private const val NAME = "pocketbox.db"

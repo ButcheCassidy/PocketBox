@@ -21,6 +21,12 @@
          and stop. Install-time only. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Needed ONLY by the optional bit-perfect USB DAC mode: Android 14's AudioManager
+         .setPreferredMixerAttributes() requires it. It is a "normal" permission, granted at install
+         with no prompt, and lets the app adjust only its own audio output; it cannot record,
+         read files or reach the network. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Safety net: make sure no library can ever sneak these in through manifest merging. -->
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
@@ -58,5 +64,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- The playback service. Exported because Android's media system (notification, lock screen,
+             Quick Settings, Bluetooth devices) must be able to connect to it. Untrusted apps that
+             connect only get basic play/pause/skip and cannot browse the library or see the queue. -->
+        <service
+            android:name=".playback.PlaybackService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaLibraryService" />
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>
