@@ -1,7 +1,7 @@
 # Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
 # Builds a signed release APK and publishes it with its SHA-256 checksum as a GitHub Release, either
 # when a version tag (v1.0.0, v1.1.0-beta.1, …) is pushed, or when started by hand (Actions → Release →
-# Run workflow) with a version number; then it creates the tag itself. Only official actions, each
+# Run workflow) with a version number and optional release notes; then it creates the tag itself. Only official actions, each
 # pinned to a full commit SHA. Signing comes from encrypted repository secrets (see BUILDING.md).
 name: Release
 
@@ -13,6 +13,10 @@ on:
       version:
         description: "Version to release, without the v (for example 1.0.0-beta.1)"
         required: true
+        type: string
+      notes:
+        description: "Release notes (Markdown); the checksum line is added below them"
+        required: false
         type: string
 
 permissions:
@@ -100,6 +104,7 @@ jobs:
       - name: Publish the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          NOTES: ${{ inputs.notes }} # passed as data, never pasted into the script
         run: |
           apk="PocketBox-${TAG#v}.apk"
           prerelease=""
@@ -107,4 +112,6 @@ jobs:
           # A pushed tag already exists; a hand-started run creates it on the commit it built.
           tag_option="--verify-tag"
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then tag_option="--target=$GITHUB_SHA"; fi
-          gh release create "$TAG" "$apk" "$apk.sha256" "$tag_option" --title "Pocket Box ${TAG#v}" --notes "Signed APK for Pixel 8 and newer. Check it with: sha256sum -c $apk.sha256" $prerelease
+          check="Check the download with: sha256sum -c $apk.sha256"
+          notes="${NOTES:-Signed APK for Pixel 6 and newer.}"
+          gh release create "$TAG" "$apk" "$apk.sha256" "$tag_option" --title "Pocket Box ${TAG#v}" --notes "$notes"$'\n\n'"$check" $prerelease
