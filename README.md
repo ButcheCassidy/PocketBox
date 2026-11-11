@@ -119,6 +119,24 @@ Mark any of your folders as an **audiobook folder** (Settings → Library) and e
 - Back 30 seconds and forward 30 seconds buttons, and chapters always play in order (no shuffle, no crossfade)
 - Playback speed works as usual, for those long trails
 
+#### How to add your audiobooks
+
+<img src=".github/screenshots/audiobook-folder.jpg" width="240" align="right" alt="Settings, Library: the audiobook button sits next to each music folder, before the hide-subfolder and remove buttons">
+
+1. **Give your books their own folder** on the phone, for example `Audiobooks`, with one folder per book inside it. Pocket Box turns a whole folder into audiobooks, so keep your music somewhere else.
+2. Open Pocket Box and go to **Settings → Library**. Your folders are listed under **Music folders**.
+3. **New folder?** Tap **Add folder** and pick your audiobooks folder.
+4. Tap the **audiobook button** (the open book, circled in the picture) next to that folder. It lights up, and the folder now says **Audiobook folder**.
+5. Head back to the library: your books are waiting in the **Audiobooks** tab.
+
+**Already added the folder as music?** Skip step 3 and just tap its audiobook button; no rescan needed. Tap the button again any time to turn the folder back into music.
+
+**Adding more books later** is as easy as copying them into the audiobook folder. Pocket Box finds them the next time it scans (or tap **Rescan now** on the same screen).
+
+Chapters play in track-number order, then by file name, so files named `01`, `02`, `03` … always play in the right order. Books are grouped by their album tag, the same way albums are.
+
+<br clear="right">
+
 ### Lyrics and widget
 - Lyrics from your own `.lrc` files or embedded tags. Synced lyrics scroll smoothly with the current line highlighted, and you can tap a line to jump there.
 - **Word-by-word lyrics**: with "enhanced" `.lrc` files that time each word (`<mm:ss.xx>`), the words light up as they're sung, karaoke style
