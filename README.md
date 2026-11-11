@@ -185,9 +185,11 @@ Pocket Box can't reach the internet, reads only the folders you give it, treats 
 
 ## Screenshots
 
-Screenshots will live in [`docs/screenshots/`](docs/screenshots/). That folder's README lists what goes where.
+Screenshots of the library, Now Playing, lyrics, the queue, settings and the widget, in light and dark, will be added here.
 
 ## License
+
+Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel.
 
 Pocket Box is source-available under the [PolyForm Strict License 1.0.0](LICENSE). You're welcome to read the code, build it and use the app for any noncommercial purpose. Redistributing it or publishing modified versions isn't allowed. Third-party components and their licences are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
