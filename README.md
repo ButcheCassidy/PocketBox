@@ -195,4 +195,4 @@ Pocket Box is source-available under the [PolyForm Strict License 1.0.0](LICENSE
 
 ---
 
-Made by **ButcheCassidy - The Nomadic Rebel**
+Made by **ButcheCassidy - The Nomadic Rebel** · [Donate](DONATE.md)
