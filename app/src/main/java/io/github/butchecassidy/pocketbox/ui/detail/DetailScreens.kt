@@ -45,7 +45,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -72,8 +71,8 @@ import io.github.butchecassidy.pocketbox.ui.components.PocketTopBar
 import io.github.butchecassidy.pocketbox.ui.components.QualityBadge
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
 import io.github.butchecassidy.pocketbox.ui.components.TrackRow
-import io.github.butchecassidy.pocketbox.ui.components.reorderItem
 import io.github.butchecassidy.pocketbox.ui.components.rememberReorderState
+import io.github.butchecassidy.pocketbox.ui.components.reorderItem
 import io.github.butchecassidy.pocketbox.ui.library.NewPlaylistDialog
 import io.github.butchecassidy.pocketbox.ui.navigation.FacetType
 import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
@@ -202,8 +201,7 @@ fun AlbumScreen(albumKey: String) {
             val discs = tracks.groupBy { it.discNumber ?: 1 }
             discs.forEach { (disc, discTracks) ->
                 if (discs.size > 1) item(key = "disc-$disc") { SectionHeader(stringResource(R.string.disc_number, disc)) }
-                val offset = tracks.indexOf(discTracks.first())
-                trackItems(discTracks, onPlay = { container.queue.play(ids, offset + it) }, numbered = true)
+                trackItems(discTracks, onPlay = { container.queue.play(ids, ids.indexOf(discTracks[it].id)) }, numbered = true)
             }
         }
     }
@@ -270,26 +268,29 @@ fun PlaylistScreen(playlistId: Long) {
     val navigator = LocalNavigator.current
     val actions = LocalActions.current
     val showMessage = LocalShowMessage.current
-    val resources = LocalContext.current.resources
+    val exported = stringResource(R.string.exported_playlist)
+    val exportFailed = stringResource(R.string.export_failed)
     val scope = rememberCoroutineScope()
     val name by remember(playlistId) { container.playlists.name(playlistId) }.collectAsStateWithLifecycle(null)
     val tracks by remember(playlistId) { container.playlists.tracks(playlistId) }.collectAsStateWithLifecycle(emptyList())
     var menuOpen by remember { mutableStateOf(false) }
     var renaming by rememberSaveable { mutableStateOf(false) }
     var deleting by rememberSaveable { mutableStateOf(false) }
-    val title = name ?: return DetailScaffold("") {}
     val ids = tracks.map { it.id }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("audio/x-mpegurl")) { uri ->
         if (uri != null) scope.launch {
             val ok = container.playlists.export(playlistId, tracks, uri)
-            showMessage(resources.getString(if (ok) R.string.exported_playlist else R.string.export_failed))
+            showMessage(if (ok) exported else exportFailed)
         }
     }
     val listState = rememberLazyListState()
     val reorder = rememberReorderState(listState, indexOffset = 1) { from, to ->
-        val reordered = ids.toMutableList().apply { add(to, removeAt(from)) }
-        scope.launch { container.playlists.setOrder(playlistId, reordered) }
+        if (from in ids.indices && to in ids.indices) {
+            val reordered = ids.toMutableList().apply { add(to, removeAt(from)) }
+            scope.launch { container.playlists.setOrder(playlistId, reordered) }
+        }
     }
+    val title = name ?: return DetailScaffold("") {}
     DetailScaffold(title, actions = {
         Box {
             PocketIconButton(R.drawable.ic_more_vert, stringResource(R.string.more_options), { menuOpen = true })
@@ -334,7 +335,7 @@ fun PlaylistScreen(playlistId: Long) {
             confirmLabel = stringResource(R.string.delete),
             onConfirm = {
                 deleting = false
-                scope.launch { container.playlists.delete(playlistId) }
+                container.appScope.launch { container.playlists.delete(playlistId) }
                 navigator.back()
             },
             dismissLabel = stringResource(R.string.cancel),

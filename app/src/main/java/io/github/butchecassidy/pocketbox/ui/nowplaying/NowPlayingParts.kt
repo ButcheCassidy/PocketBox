@@ -132,7 +132,8 @@ fun NowPlayingLayout(art: @Composable (Dp) -> Unit, details: @Composable (Dp) ->
 /**
  * The album art square. Shrinks to 88 % when paused; swipe left/right to skip (the neighbour slides
  * in, a 30 % drag or a fling commits, otherwise it springs back; at the ends it resists like a
- * rubber band); tap to flip to lyrics in the same square. It never leaves its centre line.
+ * rubber band); tap to flip to lyrics in the same square. It never leaves its centre line. [modifier]
+ * is applied to the cover itself, so the shared-element transition follows it.
  */
 @Composable
 fun ArtStage(
@@ -146,7 +147,7 @@ fun ArtStage(
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     lyrics: @Composable () -> Unit,
-    artModifier: Modifier = Modifier,
+    modifier: Modifier = Modifier,
 ) {
     val reduceMotion = LocalReduceMotion.current
     val haptic = rememberHaptic()
@@ -232,7 +233,7 @@ fun ArtStage(
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { flipped = !flipped },
         ) {
             if (rotation <= 90f) {
-                ArtImage(art, size, artKey, artModifier.size(size), contentDescription = stringResource(R.string.album_art))
+                ArtImage(art, size, artKey, modifier.size(size), contentDescription = stringResource(R.string.album_art))
             } else {
                 Box(Modifier.fillMaxSize().graphicsLayer { rotationY = 180f }) { lyrics() }
             }

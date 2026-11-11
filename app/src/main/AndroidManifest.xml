@@ -92,5 +92,12 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/now_playing_widget_info" />
         </receiver>
+
+        <!-- WorkManager (pulled in by the widget library) adds an exported diagnostics receiver for
+             developer tools. Pocket Box doesn't need it, so it's removed to keep the app's surface small. -->
+        <receiver
+            android:name="androidx.work.impl.diagnostics.DiagnosticsReceiver"
+            tools:ignore="MissingClass"
+            tools:node="remove" />
     </application>
 </manifest>

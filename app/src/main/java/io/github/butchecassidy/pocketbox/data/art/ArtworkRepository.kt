@@ -4,8 +4,8 @@ package io.github.butchecassidy.pocketbox.data.art
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.net.Uri
 import android.util.LruCache
+import androidx.core.net.toUri
 import io.github.butchecassidy.pocketbox.data.scan.AudioFiles
 import io.github.butchecassidy.pocketbox.data.scan.tags.ReadOptions
 import io.github.butchecassidy.pocketbox.domain.model.ArtRef
@@ -55,9 +55,6 @@ class ArtworkRepository(
         }
     }
 
-    /** Raw picture bytes (for Media3 notification art), capped in size. */
-    suspend fun bytes(art: ArtRef): ByteArray? = withContext(io) { extract(art) }
-
     /** Deletes every cached thumbnail, e.g. after the user removes a folder. */
     suspend fun clear() = withContext(io) {
         memory.evictAll()
@@ -80,7 +77,7 @@ class ArtworkRepository(
     }
 
     private fun extract(art: ArtRef): ByteArray? {
-        val uri = Uri.parse(art.uri)
+        val uri = art.uri.toUri()
         return when (art.source) {
             ArtSource.EMBEDDED -> audioFiles.read(uri, ReadOptions.PICTURE)?.tags?.picture?.data
             ArtSource.FOLDER -> audioFiles.readSmallFile(uri, MAX_SOURCE_BYTES)

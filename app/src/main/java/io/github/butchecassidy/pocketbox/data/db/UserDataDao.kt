@@ -35,9 +35,6 @@ interface UserDataDao {
     )
     fun playlistTracks(playlistId: Long): Flow<List<TrackRow>>
 
-    @Query("SELECT trackId FROM playlist_entries WHERE playlistId = :playlistId ORDER BY position")
-    suspend fun playlistTrackIds(playlistId: Long): List<Long>
-
     @Insert
     suspend fun insertPlaylist(playlist: PlaylistEntity): Long
 
@@ -59,10 +56,19 @@ interface UserDataDao {
     @Query("UPDATE playlists SET updatedAt = :now WHERE id = :id")
     suspend fun touchPlaylist(id: Long, now: Long)
 
+    @Query("SELECT id FROM tracks WHERE id IN (:ids)")
+    suspend fun existingTrackIds(ids: List<Long>): List<Long>
+
+    /** Drops songs a rescan removed in the meantime; adding them would break the link to the tracks table. */
+    suspend fun stillInLibrary(trackIds: List<Long>): List<Long> {
+        val present = trackIds.distinct().chunked(CHUNK).flatMapTo(HashSet()) { existingTrackIds(it) }
+        return trackIds.filter { it in present }
+    }
+
     @Transaction
     suspend fun appendToPlaylist(playlistId: Long, trackIds: List<Long>, now: Long) {
         val start = lastPosition(playlistId) + 1
-        insertEntries(trackIds.mapIndexed { i, id -> PlaylistEntryEntity(playlistId = playlistId, trackId = id, position = start + i) })
+        insertEntries(stillInLibrary(trackIds).mapIndexed { i, id -> PlaylistEntryEntity(playlistId = playlistId, trackId = id, position = start + i) })
         touchPlaylist(playlistId, now)
     }
 
@@ -70,7 +76,7 @@ interface UserDataDao {
     @Transaction
     suspend fun replaceEntries(playlistId: Long, trackIds: List<Long>, now: Long) {
         clearEntries(playlistId)
-        insertEntries(trackIds.mapIndexed { i, id -> PlaylistEntryEntity(playlistId = playlistId, trackId = id, position = i) })
+        insertEntries(stillInLibrary(trackIds).mapIndexed { i, id -> PlaylistEntryEntity(playlistId = playlistId, trackId = id, position = i) })
         touchPlaylist(playlistId, now)
     }
 
@@ -85,8 +91,9 @@ interface UserDataDao {
     )
     fun favoriteTracks(): Flow<List<TrackRow>>
 
-    @Insert(onConflict = androidx.room.OnConflictStrategy.IGNORE)
-    suspend fun addFavorite(favorite: FavoriteEntity)
+    // Only for a song still in the library (a rescan may have just removed it).
+    @Query("INSERT OR IGNORE INTO favorites (trackId, addedAt) SELECT :trackId, :now WHERE EXISTS (SELECT 1 FROM tracks WHERE id = :trackId)")
+    suspend fun addFavorite(trackId: Long, now: Long)
 
     @Query("DELETE FROM favorites WHERE trackId = :trackId")
     suspend fun removeFavorite(trackId: Long)
@@ -94,7 +101,9 @@ interface UserDataDao {
     // ---- Listening history ----
 
     @Query(
-        "INSERT INTO play_stats (trackId, playCount, lastPlayedAt) VALUES (:trackId, 1, :now) " +
+        // Counted only while the song is still in the library: it may have been deleted while it played.
+        "INSERT INTO play_stats (trackId, playCount, lastPlayedAt) SELECT :trackId, 1, :now " +
+            "WHERE EXISTS (SELECT 1 FROM tracks WHERE id = :trackId) " +
             "ON CONFLICT(trackId) DO UPDATE SET playCount = playCount + 1, lastPlayedAt = :now",
     )
     suspend fun recordPlay(trackId: Long, now: Long)
@@ -135,4 +144,8 @@ interface UserDataDao {
 
     @Query("DELETE FROM release_overrides WHERE albumKey = :albumKey")
     suspend fun clearReleaseOverride(albumKey: String)
+
+    private companion object {
+        const val CHUNK = 500
+    }
 }

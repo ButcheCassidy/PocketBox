@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
@@ -200,6 +201,11 @@ fun AlbumCard(album: Album, onClick: () -> Unit, onLongClick: () -> Unit, modifi
 }
 
 /** The one artist row: round picture from their first album, name, counts. */
+/** An artist's counts for a list row, e.g. "3 releases · 1 song". */
+@Composable
+fun artistCounts(releases: Int, songs: Int): String =
+    pluralStringResource(R.plurals.release_count, releases, releases) + " · " + pluralStringResource(R.plurals.song_count, songs, songs)
+
 @Composable
 fun ArtistRow(artist: Artist, subtitle: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val size = LocalSizes.current.artistImage

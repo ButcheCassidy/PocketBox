@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.media3.common.C
 import androidx.media3.common.Format
 import androidx.media3.common.MimeTypes
+import androidx.media3.common.ParserException
 import androidx.media3.common.util.ParsableByteArray
 import androidx.media3.common.util.Util
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -141,8 +142,10 @@ class AiffExtractor : Extractor {
             input.readFully(chunkHeader.data, 0, 8)
             val id = chunkHeader.readString(4)
             val size = chunkHeader.readUnsignedInt()
+            if (size > MAX_CHUNK_SIZE) throw ParserException.createForMalformedContainer("AIFF chunk too large", null)
             when (id) {
                 "COMM" -> {
+                    if (size < MIN_COMM) throw ParserException.createForMalformedContainer("AIFF COMM chunk too small", null)
                     val body = ParsableByteArray(size.toInt().coerceIn(18, MAX_COMM))
                     input.readFully(body.data, 0, body.limit())
                     channels = body.readUnsignedShort()
@@ -155,10 +158,11 @@ class AiffExtractor : Extractor {
                 }
                 "SSND" -> {
                     val offset = ParsableByteArray(8).also { input.readFully(it.data, 0, 8) }.readUnsignedInt()
+                    if (size < 8 || offset > size - 8) throw ParserException.createForMalformedContainer("AIFF SSND chunk", null)
                     input.skipFully(offset.toInt())
                     val encoding = encodingFor(compression, bitsPerSample)
                     if (channels <= 0 || sampleRate <= 0 || encoding == C.ENCODING_INVALID) {
-                        throw androidx.media3.common.ParserException.createForUnsupportedContainerFeature("AIFF encoding")
+                        throw ParserException.createForUnsupportedContainerFeature("AIFF encoding")
                     }
                     val start = input.position
                     val end = min(start + size - 8 - offset, input.length.takeIf { it != C.LENGTH_UNSET.toLong() } ?: Long.MAX_VALUE)
@@ -167,7 +171,7 @@ class AiffExtractor : Extractor {
                 else -> input.skipFully((size + (size and 1)).toInt())
             }
         }
-        throw androidx.media3.common.ParserException.createForMalformedContainer("No SSND chunk", null)
+        throw ParserException.createForMalformedContainer("No SSND chunk", null)
     }
 
     private fun encodingFor(compression: String, bits: Int): Int = when (compression) {
@@ -183,7 +187,7 @@ class AiffExtractor : Extractor {
             32 -> C.ENCODING_PCM_32BIT
             else -> C.ENCODING_INVALID
         }
-        "fl32", "FL32" -> C.ENCODING_PCM_FLOAT_BIG_ENDIAN
+        "fl32", "FL32" -> if (bits == 32) C.ENCODING_PCM_FLOAT_BIG_ENDIAN else C.ENCODING_INVALID
         else -> C.ENCODING_INVALID
     }
 
@@ -201,6 +205,10 @@ class AiffExtractor : Extractor {
     private companion object {
         const val SAMPLES_PER_SECOND = 10
         const val MAX_CHUNKS = 1_000
+        const val MIN_COMM = 18L
         const val MAX_COMM = 64
+
+        // Chunk sizes beyond this can't be skipped as one Int and only appear in damaged files.
+        const val MAX_CHUNK_SIZE = Int.MAX_VALUE - 1L
     }
 }

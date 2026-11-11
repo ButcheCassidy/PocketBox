@@ -39,9 +39,6 @@ interface PlaybackDao {
         upsertQueueState(state)
     }
 
-    @Query("UPDATE queue_state SET currentIndex = :index, positionMs = :positionMs WHERE id = 0")
-    suspend fun savePosition(index: Int, positionMs: Long)
-
     @Query("SELECT * FROM eq_presets ORDER BY name COLLATE NOCASE")
     fun eqPresets(): Flow<List<EqPresetEntity>>
 

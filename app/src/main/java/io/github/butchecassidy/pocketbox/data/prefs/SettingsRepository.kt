@@ -29,9 +29,11 @@ import io.github.butchecassidy.pocketbox.domain.model.ThemeMode
 import io.github.butchecassidy.pocketbox.domain.model.UserSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 
 /**
  * All user settings and small app state, stored with Jetpack DataStore (off the main thread, atomic).
@@ -44,7 +46,12 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
         produceFile = { context.applicationContext.preferencesDataStoreFile(FILE_NAME) },
     )
 
-    val settings: Flow<UserSettings> = store.data.map(::toSettings).distinctUntilChanged()
+    // A storage read error (not corruption, which the handler above covers) falls back to defaults instead of crashing.
+    private val data: Flow<Preferences> = store.data.catch { error ->
+        if (error is IOException) emit(emptyPreferences()) else throw error
+    }
+
+    val settings: Flow<UserSettings> = data.map(::toSettings).distinctUntilChanged()
 
     suspend fun current(): UserSettings = settings.first()
 
@@ -55,14 +62,14 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
 
     // ---- Last tab and scroll positions ----
 
-    val lastTab: Flow<LibraryTab?> = store.data.map { enumOrNull<LibraryTab>(it[Keys.lastTab]) }.distinctUntilChanged()
+    val lastTab: Flow<LibraryTab?> = data.map { enumOrNull<LibraryTab>(it[Keys.lastTab]) }.distinctUntilChanged()
 
     suspend fun setLastTab(tab: LibraryTab) {
         store.edit { it[Keys.lastTab] = tab.name }
     }
 
     suspend fun scrollPosition(tab: LibraryTab): ScrollPosition? {
-        val raw = store.data.first()[scrollKey(tab)] ?: return null
+        val raw = data.first()[scrollKey(tab)] ?: return null
         val index = raw.substringBefore(',').toIntOrNull() ?: return null
         val offset = raw.substringAfter(',').toIntOrNull() ?: 0
         return ScrollPosition(index.coerceAtLeast(0), offset.coerceAtLeast(0))
@@ -74,7 +81,7 @@ class SettingsRepository(context: Context, scope: CoroutineScope) {
 
     // ---- Donation reminder state (local only) ----
 
-    val donationState: Flow<DonationState> = store.data.map { prefs ->
+    val donationState: Flow<DonationState> = data.map { prefs ->
         DonationState(
             firstLaunchEpochDay = prefs[Keys.firstLaunchDay],
             playDays = prefs[Keys.playDays].orEmpty().split(',').mapNotNull { it.toLongOrNull() }.toSet(),

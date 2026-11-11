@@ -2,6 +2,7 @@
 package io.github.butchecassidy.pocketbox.data.scan
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.room.withTransaction
 import io.github.butchecassidy.pocketbox.data.db.AlbumEntity
 import io.github.butchecassidy.pocketbox.data.db.ArtistEntity
@@ -110,11 +111,16 @@ class LibraryScanner(
         true
     }
 
-    /** Forgets a folder: its songs leave the library and the access grant is handed back. */
-    suspend fun removeFolder(folderId: Long) = withContext(io) {
+    /**
+     * Forgets a folder: its songs leave the library and the access grant is handed back. Waits for a
+     * running scan, so the scan can't write songs into a folder that no longer exists.
+     */
+    suspend fun removeFolder(folderId: Long) = mutex.withLock { removeFolderNow(folderId) }
+
+    private suspend fun removeFolderNow(folderId: Long) = withContext(io) {
         val folder = scanDao.foldersOnce().firstOrNull { it.id == folderId } ?: return@withContext
         scanDao.deleteFolder(folderId)
-        folderAccess.release(Uri.parse(folder.treeUri))
+        folderAccess.release(folder.treeUri.toUri())
         lostFolderIds.value -= folderId
         rebuildAlbumsAndArtists()
     }
@@ -128,7 +134,7 @@ class LibraryScanner(
     /** Lists the subfolders of a library folder, for the "exclude subfolders" picker. */
     suspend fun subfolders(folderId: Long, parentDocumentId: String?): List<DocumentEntry> = withContext(io) {
         val folder = scanDao.foldersOnce().firstOrNull { it.id == folderId } ?: return@withContext emptyList()
-        val tree = Uri.parse(folder.treeUri)
+        val tree = folder.treeUri.toUri()
         folderAccess.listChildren(tree, parentDocumentId ?: folder.rootDocumentId).orEmpty()
             .filter { it.isDirectory }
             .sortedWith(compareBy(SortKeys.comparator) { it.name })
@@ -137,7 +143,7 @@ class LibraryScanner(
     /** Re-checks every folder's access without scanning; used at startup and after playback errors. */
     suspend fun refreshAccess() = withContext(io) {
         lostFolderIds.value = scanDao.foldersOnce()
-            .filterNot { folderAccess.isAccessible(Uri.parse(it.treeUri)) }
+            .filterNot { folderAccess.isAccessible(it.treeUri.toUri()) }
             .map { it.id }
             .toSet()
     }
@@ -163,7 +169,7 @@ class LibraryScanner(
             _state.value = ScanState.Running(0, 0, 0)
 
             for (folder in folders) {
-                val tree = Uri.parse(folder.treeUri)
+                val tree = folder.treeUri.toUri()
                 if (!folderAccess.isAccessible(tree)) {
                     lost += folder.id
                     continue
@@ -291,7 +297,7 @@ class LibraryScanner(
      * the user already chose "Add anyway" for this exact version. Null when the file can't be read.
      */
     private fun readFile(file: FileContext, old: ScanIndexRow?, held: HeldFileEntity?, now: Long, minDurationMs: Long): FileOutcome? {
-        val uri = Uri.parse(file.documentUri)
+        val uri = file.documentUri.toUri()
         val trusted = held != null && held.approved && held.isSameFile(file)
         if (old == null && !trusted) {
             val findings = audioFiles.inspect(uri) ?: return null

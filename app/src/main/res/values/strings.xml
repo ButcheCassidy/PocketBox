@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Pocket Box</string>
     <string name="app_author" translatable="false">ButcheCassidy - The Nomadic Rebel</string>
 
@@ -8,7 +8,6 @@
     <string name="back">Back</string>
     <string name="more_options">More options</string>
     <string name="cancel">Cancel</string>
-    <string name="ok">OK</string>
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="rename">Rename</string>
@@ -23,7 +22,6 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="album_art">Album art</string>
-    <string name="unknown">Unknown</string>
     <string name="separator_dot">%1$s · %2$s</string>
 
     <!-- Home-screen widget -->
@@ -81,7 +79,8 @@
     <string name="bitrate_average">%1$s (average)</string>
     <string name="channels_mono">Mono</string>
     <string name="channels_stereo">Stereo</string>
-    <string name="channels_count">%1$d channels</string>
+    <!-- Only used for 3 or more channels (mono and stereo have their own words), so never singular. -->
+    <string name="channels_count" tools:ignore="PluralsCandidate">%1$d channels</string>
 
     <!-- Empty states -->
     <string name="empty_library_title">No music yet</string>

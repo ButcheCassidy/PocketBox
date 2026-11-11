@@ -35,12 +35,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -75,8 +77,9 @@ class Navigator(private val nav: NavHostController) {
         restoreState = true
     }
 
+    /** Clears the whole back stack, so Back never returns to setup or to the screen that opened it. */
     fun finishOnboarding() = nav.navigate(Routes.LIBRARY) {
-        popUpTo(Routes.ONBOARDING) { inclusive = true }
+        popUpTo(nav.graph.id) { inclusive = true }
     }
 }
 
@@ -86,6 +89,14 @@ val LocalNavigator = staticCompositionLocalOf<Navigator> { error("Navigator not 
 @Stable
 class NowPlayingState {
     var expanded by mutableStateOf(false)
+
+    companion object {
+        /** Keeps Now Playing open across rotation. */
+        val Saver = Saver<NowPlayingState, Boolean>(
+            save = { it.expanded },
+            restore = { NowPlayingState().apply { expanded = it } },
+        )
+    }
 }
 
 val LocalNowPlaying = staticCompositionLocalOf { NowPlayingState() }
@@ -109,13 +120,14 @@ fun PocketBoxRoot(startDestination: String, openNowPlayingRequest: Boolean, onNo
     val navController = rememberNavController()
     val navigator = remember(navController) { Navigator(navController) }
     val actions = remember { ActionsState() }
-    val nowPlaying = remember { NowPlayingState() }
+    val nowPlaying = rememberSaveable(saver = NowPlayingState.Saver) { NowPlayingState() }
+    val initialStart = remember { startDestination }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val playerState by container.player.state.collectAsStateWithLifecycle()
     val backStack by navController.currentBackStackEntryAsState()
     val route = backStack?.destination?.route
-    val wide = LocalConfiguration.current.screenWidthDp >= WIDE_SCREEN_DP
+    val wide = LocalWindowInfo.current.containerSize.width / LocalDensity.current.density >= WIDE_SCREEN_DP
     val showChrome = route != null && route != Routes.ONBOARDING
     val showNav = showChrome && route in Routes.topLevel
     val showMessage: (String) -> Unit = { message -> scope.launch { snackbar.showSnackbar(message) } }
@@ -194,7 +206,7 @@ fun PocketBoxRoot(startDestination: String, openNowPlayingRequest: Boolean, onNo
                     },
                 ) { padding ->
                     CompositionLocalProvider(LocalChromePadding provides padding) {
-                        AppNavHost(navController, startDestination)
+                        AppNavHost(navController, initialStart)
                     }
                 }
             }
@@ -218,7 +230,7 @@ fun PocketBoxRoot(startDestination: String, openNowPlayingRequest: Boolean, onNo
             onOpenArtist = { nowPlaying.expanded = false; navigator.go(Routes.artist(it)) },
         )
         ClearQueueDialog()
-        if (!nowPlaying.expanded) HeldFilesNotice()
+        if (showChrome && !nowPlaying.expanded) HeldFilesNotice()
         if (route == Routes.LIBRARY && !nowPlaying.expanded) DonationReminderHost()
     }
 }

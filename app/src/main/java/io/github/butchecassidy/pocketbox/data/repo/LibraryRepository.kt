@@ -2,7 +2,6 @@
 package io.github.butchecassidy.pocketbox.data.repo
 
 import io.github.butchecassidy.pocketbox.data.db.AlbumRow
-import io.github.butchecassidy.pocketbox.data.db.FavoriteEntity
 import io.github.butchecassidy.pocketbox.data.db.PocketBoxDatabase
 import io.github.butchecassidy.pocketbox.data.db.ReleaseOverrideEntity
 import io.github.butchecassidy.pocketbox.data.db.TrackRow
@@ -114,7 +113,7 @@ class LibraryRepository(db: PocketBoxDatabase, private val cpu: CoroutineDispatc
     val favorites: Flow<List<Track>> = userDao.favoriteTracks().tracks()
 
     suspend fun setFavorite(trackId: Long, favorite: Boolean) = withContext(cpu) {
-        if (favorite) userDao.addFavorite(FavoriteEntity(trackId, System.currentTimeMillis()))
+        if (favorite) userDao.addFavorite(trackId, System.currentTimeMillis())
         else userDao.removeFavorite(trackId)
     }
 

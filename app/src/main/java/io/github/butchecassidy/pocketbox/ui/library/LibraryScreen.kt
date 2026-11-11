@@ -59,8 +59,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -89,6 +90,7 @@ import io.github.butchecassidy.pocketbox.ui.components.PocketIconButton
 import io.github.butchecassidy.pocketbox.ui.components.PocketTopBar
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
 import io.github.butchecassidy.pocketbox.ui.components.TrackRow
+import io.github.butchecassidy.pocketbox.ui.components.artistCounts
 import io.github.butchecassidy.pocketbox.ui.navigation.FacetType
 import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
 import io.github.butchecassidy.pocketbox.ui.navigation.Routes
@@ -207,8 +209,8 @@ private fun LibraryBanners(vm: LibraryViewModel) {
         Row(Modifier.fillMaxWidth().padding(horizontal = spacing.screen, vertical = spacing.half), verticalAlignment = Alignment.CenterVertically) {
             LoadingIndicator(Modifier.width(LocalSizes.current.touchTarget))
             Text(
-                if (running.filesToRead > 0) stringResource(R.string.scanning_reading, running.filesRead, running.filesToRead)
-                else stringResource(R.string.scanning, running.filesFound),
+                if (running.filesToRead > 0) pluralStringResource(R.plurals.scanning_reading, running.filesToRead, running.filesRead, running.filesToRead)
+                else pluralStringResource(R.plurals.scanning, running.filesFound, running.filesFound),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(start = spacing.one),
             )
@@ -477,7 +479,7 @@ private fun ArtistsTab(vm: LibraryViewModel) {
         items(artists, key = { it.key }) { artist ->
             ArtistRow(
                 artist,
-                subtitle = stringResource(R.string.albums_and_songs, artist.albumCount, artist.trackCount),
+                subtitle = artistCounts(artist.albumCount, artist.trackCount),
                 onClick = { navigator.go(Routes.artist(artist.key)) },
             )
         }
@@ -493,13 +495,13 @@ private fun PlaylistsTab(vm: LibraryViewModel) {
     val spacing = LocalSpacing.current
     val sizes = LocalSizes.current
     var creating by rememberSaveable { mutableStateOf(false) }
-    val resources = LocalContext.current.resources
+    val resources = LocalResources.current
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) scope.launch {
             val result = vm.importPlaylist(uri)
             showMessage(
                 if (result == null) resources.getString(R.string.import_failed)
-                else resources.getString(R.string.imported_playlist, result.name, result.matched, result.skipped),
+                else resources.getQuantityString(R.plurals.imported_playlist, result.matched, result.name, result.matched, result.skipped),
             )
         }
     }
@@ -527,7 +529,7 @@ private fun PlaylistsTab(vm: LibraryViewModel) {
         items(playlists, key = { it.id }) { playlist ->
             ListItem(
                 headlineContent = { Text(playlist.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                supportingContent = { Text(stringResource(R.string.song_count, playlist.trackCount)) },
+                supportingContent = { Text(pluralStringResource(R.plurals.song_count, playlist.trackCount, playlist.trackCount)) },
                 leadingContent = {
                     ArtImage(playlist.art, sizes.rowArt, playlist.name, Modifier.size(sizes.rowArt))
                 },
