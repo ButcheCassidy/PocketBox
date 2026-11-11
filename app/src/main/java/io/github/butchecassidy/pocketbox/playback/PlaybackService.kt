@@ -35,7 +35,6 @@ import io.github.butchecassidy.pocketbox.R
 import io.github.butchecassidy.pocketbox.di.AppContainer
 import io.github.butchecassidy.pocketbox.domain.audio.ReplayGainCalculator
 import io.github.butchecassidy.pocketbox.domain.model.UserSettings
-import io.github.butchecassidy.pocketbox.domain.queue.ShuffleSequence
 import io.github.butchecassidy.pocketbox.widget.WidgetStatePublisher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -204,6 +203,7 @@ class PlaybackService : MediaLibraryService() {
         }
         replacement.shuffleModeEnabled = old.shuffleModeEnabled
         replacement.repeatMode = old.repeatMode
+        replacement.pauseAtEndOfMediaItems = old.pauseAtEndOfMediaItems
         replacement.playWhenReady = old.playWhenReady
         replacement.volume = old.volume
         if (items.isNotEmpty()) replacement.prepare()

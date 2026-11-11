@@ -4,26 +4,26 @@ package io.github.butchecassidy.pocketbox.ui.support
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.core.net.toUri
 import io.github.butchecassidy.pocketbox.R
 import io.github.butchecassidy.pocketbox.SupportConfig
 import io.github.butchecassidy.pocketbox.domain.model.DonationStatus
 import io.github.butchecassidy.pocketbox.domain.support.DonationReminderPolicy
 import io.github.butchecassidy.pocketbox.ui.LocalAppContainer
 import io.github.butchecassidy.pocketbox.ui.components.PocketDialog
+import java.time.LocalDate
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 /** Set once a reminder was considered in this launch, so it never appears twice per launch. */
 private object ReminderSession {
@@ -39,14 +39,14 @@ fun DonationReminderHost() {
     val container = LocalAppContainer.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var visible by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf(DonationStatus.NEVER_SHOWN) }
+    var visible by rememberSaveable { mutableStateOf(false) }
+    var status by rememberSaveable { mutableStateOf(DonationStatus.NEVER_SHOWN) }
     val today = LocalDate.now().toEpochDay()
 
     LaunchedEffect(Unit) {
         if (ReminderSession.checked) return@LaunchedEffect
-        ReminderSession.checked = true
         val state = container.settings.donationState.first()
+        ReminderSession.checked = true
         status = state.status
         visible = DonationReminderPolicy.shouldShow(state, today, SupportConfig.isConfigured())
     }
@@ -79,7 +79,7 @@ fun DonationReminderHost() {
  */
 fun openDonationPage(context: Context) {
     if (!SupportConfig.isConfigured()) return
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(SupportConfig.DONATION_URL))
+    val intent = Intent(Intent.ACTION_VIEW, SupportConfig.DONATION_URL.toUri())
         .addCategory(Intent.CATEGORY_BROWSABLE)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     try {

@@ -40,7 +40,7 @@ fun HeldFilesScreen() {
     val container = LocalAppContainer.current
     val held by container.scanner.heldFiles.collectAsStateWithLifecycle(emptyList())
     var confirming by remember { mutableStateOf<HeldFile?>(null) }
-    SettingsScaffold(stringResource(R.string.held_files)) {
+    SettingsScaffold(stringResource(R.string.held_files), scrollable = held.isNotEmpty()) {
         if (held.isEmpty()) {
             EmptyState(R.drawable.ic_shield, stringResource(R.string.held_files_empty), stringResource(R.string.held_files_empty_body))
             return@SettingsScaffold

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
 package io.github.butchecassidy.pocketbox.data.lyrics
 
-import android.net.Uri
+import androidx.core.net.toUri
 import io.github.butchecassidy.pocketbox.data.scan.AudioFiles
 import io.github.butchecassidy.pocketbox.data.scan.tags.RawTags
 import io.github.butchecassidy.pocketbox.data.scan.tags.ReadOptions
@@ -21,11 +21,11 @@ class LyricsRepository(private val audioFiles: AudioFiles, private val io: Corou
     /** Synced lyrics win over plain ones, whichever source they come from. */
     suspend fun load(track: Track): Lyrics? = withContext(io) {
         val sidecar = track.lyricsUri?.let { uri ->
-            audioFiles.readSmallFile(Uri.parse(uri), MAX_LRC_BYTES)?.let { LrcParser.parse(decodeText(it)) }
+            audioFiles.readSmallFile(uri.toUri(), MAX_LRC_BYTES)?.let { LrcParser.parse(decodeText(it)) }
         }
         if (sidecar is Lyrics.Synced) return@withContext sidecar
         val embedded = if (track.hasEmbeddedLyrics) {
-            audioFiles.read(Uri.parse(track.uri), ReadOptions.LYRICS)?.tags?.first(RawTags.LYRICS)?.let(LrcParser::parse)
+            audioFiles.read(track.uri.toUri(), ReadOptions.LYRICS)?.tags?.first(RawTags.LYRICS)?.let(LrcParser::parse)
         } else {
             null
         }

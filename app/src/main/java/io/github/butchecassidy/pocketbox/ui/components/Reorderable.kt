@@ -2,6 +2,8 @@
 package io.github.butchecassidy.pocketbox.ui.components
 
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -10,6 +12,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -19,6 +22,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import io.github.butchecassidy.pocketbox.R
+import io.github.butchecassidy.pocketbox.ui.theme.LocalSizes
 
 /**
  * Drag-to-reorder for a LazyColumn: drag a row's handle and it follows the finger; dropping it
@@ -64,8 +68,10 @@ class ReorderState(
 }
 
 @Composable
-fun rememberReorderState(listState: LazyListState, indexOffset: Int = 0, onMove: (Int, Int) -> Unit): ReorderState =
-    remember(listState, indexOffset) { ReorderState(listState, indexOffset, onMove) }
+fun rememberReorderState(listState: LazyListState, indexOffset: Int = 0, onMove: (Int, Int) -> Unit): ReorderState {
+    val latestOnMove by rememberUpdatedState(onMove)
+    return remember(listState, indexOffset) { ReorderState(listState, indexOffset) { from, to -> latestOnMove(from, to) } }
+}
 
 /** Lifts the row being dragged and moves it with the finger. */
 fun Modifier.reorderItem(state: ReorderState, index: Int): Modifier = graphicsLayer {
@@ -79,6 +85,7 @@ fun Modifier.reorderItem(state: ReorderState, index: Int): Modifier = graphicsLa
 @Composable
 fun DragHandle(state: ReorderState, index: Int, modifier: Modifier = Modifier) {
     val label = stringResource(R.string.reorder)
+    val sizes = LocalSizes.current
     Icon(
         painterResource(R.drawable.ic_drag_handle),
         contentDescription = null,
@@ -94,7 +101,9 @@ fun DragHandle(state: ReorderState, index: Int, modifier: Modifier = Modifier) {
                     onDragEnd = { state.end() },
                     onDragCancel = { state.end() },
                 )
-            },
+            }
+            .size(sizes.touchTarget)
+            .padding((sizes.touchTarget - sizes.icon) / 2),
     )
 }
 

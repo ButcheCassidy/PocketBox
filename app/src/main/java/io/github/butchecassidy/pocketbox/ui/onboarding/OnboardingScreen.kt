@@ -39,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -220,12 +221,12 @@ private fun DoneStep() {
         },
     ) {
         if (finished != null) {
-            Text(stringResource(R.string.onboarding_done_ready, finished.trackCount), style = MaterialTheme.typography.titleMedium)
+            Text(pluralStringResource(R.plurals.onboarding_done_ready, finished.trackCount, finished.trackCount), style = MaterialTheme.typography.titleMedium)
         } else {
             LoadingIndicator(Modifier.size(LocalSizes.current.gridMinCell / 2))
             val running = scan as? ScanState.Running
             if (running != null) {
-                Text(stringResource(R.string.scanning, running.filesFound), style = MaterialTheme.typography.bodyMedium)
+                Text(pluralStringResource(R.plurals.scanning, running.filesFound, running.filesFound), style = MaterialTheme.typography.bodyMedium)
             }
         }
     }

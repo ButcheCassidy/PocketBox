@@ -38,7 +38,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -67,8 +69,8 @@ import io.github.butchecassidy.pocketbox.ui.navigation.Routes
 import io.github.butchecassidy.pocketbox.ui.navigation.SettingsSection
 import io.github.butchecassidy.pocketbox.ui.support.openDonationPage
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
-import kotlinx.coroutines.launch
 import java.util.Locale
+import kotlinx.coroutines.launch
 
 /** Settings state and a single way to change it, shared by every settings screen. */
 @Composable
@@ -80,8 +82,9 @@ private fun rememberSettings(): Pair<UserSettings, ((UserSettings) -> UserSettin
 }
 
 @Composable
-internal fun SettingsScaffold(title: String, showBack: Boolean = true, content: @Composable () -> Unit) {
+internal fun SettingsScaffold(title: String, showBack: Boolean = true, scrollable: Boolean = true, content: @Composable () -> Unit) {
     val navigator = LocalNavigator.current
+    val scrollState = rememberScrollState()
     Scaffold(
         topBar = { PocketTopBar(title, onBack = if (showBack) ({ navigator.back() }) else null) },
         contentWindowInsets = WindowInsets(0),
@@ -90,7 +93,7 @@ internal fun SettingsScaffold(title: String, showBack: Boolean = true, content: 
             Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .then(if (scrollable) Modifier.verticalScroll(scrollState) else Modifier)
                 .padding(bottom = LocalChromePadding.current.calculateBottomPadding()),
         ) { content() }
     }
@@ -99,7 +102,6 @@ internal fun SettingsScaffold(title: String, showBack: Boolean = true, content: 
 @Composable
 fun SettingsScreen() {
     val navigator = LocalNavigator.current
-    val (_, update) = rememberSettings()
     SettingsScaffold(stringResource(R.string.settings), showBack = false) {
         LinkRow(stringResource(R.string.settings_library), stringResource(R.string.settings_library_body), R.drawable.ic_folder) {
             navigator.go(Routes.settings(SettingsSection.LIBRARY))
@@ -120,7 +122,6 @@ fun SettingsScreen() {
             navigator.go(Routes.settings(SettingsSection.ABOUT))
         }
         LinkRow(stringResource(R.string.run_setup_again), icon = R.drawable.ic_refresh) {
-            update { it.copy(onboardingDone = false) }
             navigator.go(Routes.ONBOARDING)
         }
     }
@@ -202,7 +203,7 @@ private fun LibrarySettings() {
     val running = scan as? ScanState.Running
     LinkRow(
         stringResource(R.string.rescan),
-        if (running != null) stringResource(R.string.scanning, running.filesFound) else stringResource(R.string.rescan_body),
+        if (running != null) pluralStringResource(R.plurals.scanning, running.filesFound, running.filesFound) else stringResource(R.string.rescan_body),
         R.drawable.ic_refresh,
     ) { container.appScope.launch { container.scanner.scan() } }
     SliderRow(
@@ -478,7 +479,7 @@ fun EqualizerScreen() {
                 range = EqPresets.MIN_DB..EqPresets.MAX_DB,
                 steps = EQ_STEPS,
                 onChange = { value ->
-                    update { s -> s.copy(eqEnabled = true, eqPresetName = "", eqBandsDb = s.eqBandsDb.toMutableList().also { it[band] = value }) }
+                    update { s -> s.copy(eqEnabled = true, eqPresetName = "", eqBandsDb = List(EqPresets.bandCentersHz.size) { i -> if (i == band) value else s.eqBandsDb.getOrElse(i) { 0f } }) }
                 },
                 enabled = !settings.bitPerfect,
             )
@@ -514,8 +515,8 @@ fun EqualizerScreen() {
 /** Every bundled library with its licence; the Apache 2.0 text is shown in full. */
 @Composable
 fun LicensesScreen() {
-    val context = LocalContext.current
-    val text = remember { context.resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
+    val resources = LocalResources.current
+    val text = remember(resources) { resources.openRawResource(R.raw.apache_license_2_0).bufferedReader().use { it.readText() } }
     val spacing = LocalSpacing.current
     SettingsScaffold(stringResource(R.string.licenses)) {
         libraries.forEach { (name, owner) ->

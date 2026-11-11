@@ -82,8 +82,6 @@ class QueueStore(
         )
     }
 
-    suspend fun savePosition(index: Int, positionMs: Long) = withContext(io) { dao.savePosition(index, positionMs) }
-
     /** The song that will resume, when nothing is loaded in the player yet. */
     suspend fun savedCurrentTrack(): Track? = withContext(io) {
         dao.savedCurrentTrackId()?.let { library.tracksByIds(listOf(it)).firstOrNull() }

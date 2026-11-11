@@ -16,6 +16,7 @@ import io.github.butchecassidy.pocketbox.domain.model.RepeatMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,11 +68,17 @@ class QueueSnapshot(val items: List<MediaItem>, val index: Int, val positionMs: 
  * Pocket Box's UI connection to [PlaybackService], through the official Media3 [MediaController].
  * Exposes state as [StateFlow]s and offers simple commands. Reconnects automatically if the
  * service was stopped. Must be used from the main thread, like every Media3 controller.
+ *
+ * The connection is held only while the app is on screen (see [acquire]) and briefly after a widget
+ * tap. Once nothing holds it, it's let go, so a paused player can be shut down by Android and stops
+ * using memory and battery; the queue is saved and comes back on the next start.
  */
 class PlayerConnection(private val context: Context, private val scope: CoroutineScope) {
     private val _state = MutableStateFlow(PlayerState())
     private val _queue = MutableStateFlow(QueueState())
     private var controller: CompletableDeferred<MediaController>? = null
+    private var holders = 0
+    private var idleRelease: Job? = null
 
     val state: StateFlow<PlayerState> = _state.asStateFlow()
     val queue: StateFlow<QueueState> = _queue.asStateFlow()
@@ -82,9 +89,31 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
         return c.currentPosition.coerceAtLeast(0)
     }
 
-    /** Starts connecting (restores the last queue in the service) without sending any command. */
-    fun connect() {
-        scope.launch { controller() }
+    /** The app came on screen: connect (restores the last queue in the service) and stay connected. */
+    fun acquire() {
+        holders++
+        idleRelease?.cancel()
+        idleRelease = null
+        scope.launch { runCatching { controller() } }
+    }
+
+    /** The app left the screen: let the connection go once nothing else needs it. */
+    fun release() {
+        holders = (holders - 1).coerceAtLeast(0)
+        releaseWhenIdle()
+    }
+
+    private fun releaseWhenIdle() {
+        if (holders > 0) return
+        idleRelease?.cancel()
+        idleRelease = scope.launch {
+            delay(IDLE_RELEASE_MS)
+            val current = controller ?: return@launch
+            val connected = runCatching { current.await() }.getOrNull() // let a connection in progress finish
+            if (holders > 0 || controller !== current) return@launch
+            controller = null
+            connected?.release()
+        }
     }
 
     private fun connectedOrNull(): MediaController? =
@@ -94,6 +123,7 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
         controller?.let { existing ->
             val c = existing.await()
             if (c.isConnected) return c
+            c.release() // the service went away; drop the dead controller before reconnecting
         }
         val deferred = CompletableDeferred<MediaController>()
         controller = deferred
@@ -186,7 +216,10 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
 
     /** Runs [block] once connected. The returned job lets a caller (the widget) wait until it was sent. */
     private fun command(block: (MediaController) -> Unit): Job =
-        scope.launch { runCatching { controller() }.getOrNull()?.let(block) }
+        scope.launch {
+            runCatching { controller() }.getOrNull()?.let(block)
+            releaseWhenIdle()
+        }
 
     // ---- Transport ----
 
@@ -297,4 +330,9 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
     }
 
     fun cancelSleepTimer() = command { it.sendCustomCommand(PlaybackCommands.sleepCancel, Bundle.EMPTY) }
+
+    private companion object {
+        /** Long enough to ride out screen rotation and a few widget taps in a row. */
+        const val IDLE_RELEASE_MS = 10_000L
+    }
 }

@@ -112,6 +112,8 @@ It needs four repository secrets (**Settings → Secrets and variables → Actio
 | `POCKETBOX_KEY_ALIAS` | `pocketbox` |
 | `POCKETBOX_KEY_PASSWORD` | The key password |
 
+Before each new release, raise `versionCode` by one and set `versionName` in `app/build.gradle.kts`; phones only accept an update with a higher `versionCode`.
+
 Then tag a version and push the tag:
 
 ```bash

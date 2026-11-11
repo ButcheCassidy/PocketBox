@@ -30,6 +30,9 @@ object IntegrityInspector {
             checkStructure(BinaryReader(source), report)
         } catch (damaged: MalformedAudioException) {
             report.add(IntegrityIssue.DAMAGED, damaged.message ?: "file structure")
+        } catch (unreadable: RuntimeException) {
+            // Structure too broken to follow: hold it back for the user to decide, rather than skip it silently.
+            report.add(IntegrityIssue.DAMAGED, "file structure")
         }
         return report.findings
     }

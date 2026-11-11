@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * The app's object graph, built by hand once in [io.github.butchecassidy.pocketbox.PocketBoxApp]
- * (see docs/ARCHITECTURE.md for why there's no DI framework). Objects are created lazily, so
+ * (no DI framework: fewer moving parts, no generated code, a smaller APK). Objects are created lazily, so
  * startup only pays for what the first screen needs.
  */
 class AppContainer(context: Context) {

@@ -35,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -56,6 +57,7 @@ import io.github.butchecassidy.pocketbox.ui.components.LocalActions
 import io.github.butchecassidy.pocketbox.ui.components.PocketIconButton
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
 import io.github.butchecassidy.pocketbox.ui.components.TrackRow
+import io.github.butchecassidy.pocketbox.ui.components.artistCounts
 import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
 import io.github.butchecassidy.pocketbox.ui.navigation.Routes
 import io.github.butchecassidy.pocketbox.ui.pocketViewModel
@@ -290,7 +292,7 @@ private fun LazyListScope.artists(results: SearchResults, vm: SearchViewModel, l
         val navigator = LocalNavigator.current
         ArtistRow(
             artist,
-            subtitle = stringResource(R.string.albums_and_songs, artist.albumCount, artist.trackCount),
+            subtitle = artistCounts(artist.albumCount, artist.trackCount),
             onClick = { vm.remember(results.query); navigator.go(Routes.artist(artist.key)) },
         )
     }

@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
@@ -101,7 +100,6 @@ private fun SheetHeader(title: String, subtitle: String) {
 private fun SongActionsSheet(track: Track, state: ActionsState, onOpenAlbum: (String) -> Unit, onOpenArtist: (String) -> Unit) {
     val container = LocalAppContainer.current
     val showMessage = LocalShowMessage.current
-    val scope = rememberCoroutineScope()
     val favorites by container.library.favoriteIds.collectAsState(initial = emptySet())
     val isFavorite = track.id in favorites
     val playingNext = stringResource(R.string.playing_next)
@@ -122,7 +120,7 @@ private fun SongActionsSheet(track: Track, state: ActionsState, onOpenAlbum: (St
             if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite,
             stringResource(if (isFavorite) R.string.action_unfavorite else R.string.action_favorite),
         ) {
-            scope.launch { container.library.setFavorite(track.id, !isFavorite) }; close()
+            container.appScope.launch { container.library.setFavorite(track.id, !isFavorite) }; close()
         }
         ActionItem(R.drawable.ic_album, stringResource(R.string.action_go_to_album)) { close(); onOpenAlbum(track.albumKey) }
         ActionItem(R.drawable.ic_person, stringResource(R.string.action_go_to_artist)) { close(); onOpenArtist(track.artistKey) }
@@ -134,11 +132,10 @@ private fun SongActionsSheet(track: Track, state: ActionsState, onOpenAlbum: (St
 private fun ReleaseActionsSheet(album: Album, state: ActionsState, onOpenArtist: (String) -> Unit) {
     val container = LocalAppContainer.current
     val showMessage = LocalShowMessage.current
-    val scope = rememberCoroutineScope()
     val playingNext = stringResource(R.string.playing_next)
     val addedToQueue = stringResource(R.string.added_to_queue)
     val close = { state.release = null }
-    fun withTracks(block: (List<Long>) -> Unit) = scope.launch {
+    fun withTracks(block: (List<Long>) -> Unit) = container.appScope.launch {
         block(container.library.albumTracks(album.key).first().map { it.id })
     }
     PocketSheet(onDismiss = close) {
@@ -178,7 +175,7 @@ private fun ReleaseActionsSheet(album: Album, state: ActionsState, onOpenArtist:
                 headlineContent = { Text(label) },
                 leadingContent = { RadioButton(selected = selected, onClick = null) },
                 modifier = Modifier.clickable {
-                    scope.launch { container.library.setReleaseType(album.key, type) }
+                    container.appScope.launch { container.library.setReleaseType(album.key, type) }
                     close()
                 },
             )
@@ -256,7 +253,6 @@ fun InfoRow(label: String, value: String) {
 private fun AddToPlaylistDialog(trackIds: List<Long>, onDismiss: () -> Unit) {
     val container = LocalAppContainer.current
     val showMessage = LocalShowMessage.current
-    val scope = rememberCoroutineScope()
     val playlists by container.playlists.playlists.collectAsState(initial = emptyList())
     var name by remember { mutableStateOf("") }
     val addedTemplate = stringResource(R.string.added_to_playlist, "%s")
@@ -266,7 +262,7 @@ private fun AddToPlaylistDialog(trackIds: List<Long>, onDismiss: () -> Unit) {
         confirmLabel = stringResource(R.string.create),
         confirmEnabled = name.isNotBlank(),
         onConfirm = {
-            scope.launch { container.playlists.create(name, trackIds); showMessage(addedTemplate.format(name.trim())) }
+            container.appScope.launch { container.playlists.create(name, trackIds); showMessage(addedTemplate.format(name.trim())) }
             onDismiss()
         },
         dismissLabel = stringResource(R.string.cancel),
@@ -279,7 +275,7 @@ private fun AddToPlaylistDialog(trackIds: List<Long>, onDismiss: () -> Unit) {
                         ArtImage(playlist.art, LocalSizes.current.rowArt, playlist.name, Modifier.size(LocalSizes.current.rowArt))
                     },
                     modifier = Modifier.fillMaxWidth().clickable {
-                        scope.launch { container.playlists.add(playlist.id, trackIds); showMessage(addedTemplate.format(playlist.name)) }
+                        container.appScope.launch { container.playlists.add(playlist.id, trackIds); showMessage(addedTemplate.format(playlist.name)) }
                         onDismiss()
                     },
                 )

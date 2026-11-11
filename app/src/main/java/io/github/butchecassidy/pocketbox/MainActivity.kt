@@ -37,15 +37,16 @@ class MainActivity : ComponentActivity() {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        // Keep the splash until settings are read, so the first frame already has the right theme.
-        splash.setKeepOnScreenCondition { viewModel.theme.value == null }
+        // Keep the splash until settings are read, so the first frame already has the right theme and screen.
+        splash.setKeepOnScreenCondition { viewModel.theme.value == null || viewModel.settings.value == null }
         openNowPlaying = intent?.getBooleanExtra(EXTRA_OPEN_NOW_PLAYING, false) == true
 
         setContent {
             val theme by viewModel.theme.collectAsStateWithLifecycle()
             val settings by viewModel.settings.collectAsStateWithLifecycle()
             val config = theme ?: return@setContent
-            val start = if (settings?.onboardingDone == true) Routes.LIBRARY else Routes.ONBOARDING
+            val current = settings ?: return@setContent
+            val start = if (current.onboardingDone) Routes.LIBRARY else Routes.ONBOARDING
             CompositionLocalProvider(LocalAppContainer provides container) {
                 PocketBoxTheme(config) {
                     Surface(color = MaterialTheme.colorScheme.background) {
@@ -58,6 +59,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        container.player.acquire()
+    }
+
+    override fun onStop() {
+        container.player.release()
+        super.onStop()
     }
 
     override fun onNewIntent(intent: Intent) {

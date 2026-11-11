@@ -17,7 +17,10 @@
     <string name="onboarding_folders_body">Pocket Box only ever sees the folders you pick here, nothing else on your phone. You can add or remove folders later in Settings.</string>
     <string name="onboarding_look_title">Pick a look</string>
     <string name="onboarding_done_title">Finding your music</string>
-    <string name="onboarding_done_ready">All set. %1$d songs ready.</string>
+    <plurals name="onboarding_done_ready">
+        <item quantity="one">All set. %1$d song ready.</item>
+        <item quantity="other">All set. %1$d songs ready.</item>
+    </plurals>
     <string name="start_listening">Start listening</string>
     <string name="skip_for_now">Skip for now</string>
     <string name="continue_label">Continue</string>
@@ -34,11 +37,8 @@
     <string name="amoled_black_body">Pure black backgrounds in dark mode</string>
     <string name="color_source">Colours</string>
     <string name="color_dynamic">Material You</string>
-    <string name="color_dynamic_body">From your wallpaper</string>
     <string name="color_album">Album art</string>
-    <string name="color_album_body">From the song that\'s playing</string>
     <string name="color_custom">Custom</string>
-    <string name="color_custom_body">A colour you choose</string>
     <string name="hue">Hue</string>
     <string name="tone">Tone</string>
     <string name="art_shape">Album art shape</string>
@@ -50,7 +50,6 @@
     <string name="grid_auto">Auto</string>
     <string name="haptics">Haptics</string>
     <string name="tabs">Library tabs</string>
-    <string name="tabs_body">Reorder or hide tabs</string>
     <string name="move_up">Move up</string>
     <string name="move_down">Move down</string>
     <string name="show_shelves">Shelves on the Albums tab</string>

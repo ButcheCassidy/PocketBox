@@ -39,7 +39,6 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
-        container.player.connect()
         viewModelScope.launch {
             container.settings.recordFirstLaunch(LocalDate.now().toEpochDay())
             container.scanner.refreshAccess()

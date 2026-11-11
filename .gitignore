@@ -25,8 +25,5 @@ keystore.properties
 *.p12
 *.pem
 
-# Read-only reference material and setup notes (not part of the app)
-reference-repos
-reference-repos/
+# The owner's private build brief (not part of the app)
 PocketBox_Prompt.md
-LICENSES.md

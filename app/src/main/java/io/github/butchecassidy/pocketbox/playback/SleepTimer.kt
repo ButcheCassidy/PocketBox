@@ -2,7 +2,9 @@
 package io.github.butchecassidy.pocketbox.playback
 
 import android.os.Looper
+import android.os.SystemClock
 import androidx.media3.common.C
+import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.PlayerMessage
@@ -39,8 +41,14 @@ class SleepTimer(
         cancel()
         val totalMs = minutes.coerceIn(1, MAX_MINUTES) * 60_000L
         _state.value = SleepTimerState.Timed(System.currentTimeMillis() + totalMs, fadeOut)
+        // Measured on the clock that keeps running in deep sleep, so a paused, sleeping phone stays on time.
+        val fireAt = SystemClock.elapsedRealtime() + if (fadeOut) (totalMs - FADE_MS).coerceAtLeast(0) else totalMs
         job = scope.launch {
-            delay(if (fadeOut) (totalMs - FADE_MS).coerceAtLeast(0) else totalMs)
+            while (true) {
+                val left = fireAt - SystemClock.elapsedRealtime()
+                if (left <= 0) break
+                delay(left)
+            }
             if (fadeOut) fade()
             finish()
         }
@@ -52,7 +60,7 @@ class SleepTimer(
         if (exo.mediaItemCount == 0) return
         _state.value = SleepTimerState.EndOfTrack(fadeOut)
         exo.pauseAtEndOfMediaItems = true
-        val duration = exo.duration
+        val duration = exo.duration.takeIf { it != C.TIME_UNSET } ?: exo.currentMediaItem?.mediaMetadata?.durationMs ?: C.TIME_UNSET
         if (fadeOut && duration != C.TIME_UNSET && duration > FADE_MS) {
             fadeMessage = exo.createMessage { _, _ -> job = scope.launch { fade() } }
                 .setLooper(Looper.getMainLooper())
@@ -70,6 +78,12 @@ class SleepTimer(
         player().pauseAtEndOfMediaItems = false
         mixer.sleepFade = 1f
         _state.value = SleepTimerState.Off
+    }
+
+    /** End-of-song mode follows a skip: the new song becomes the last one, with its own fade. */
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        val endOfTrack = _state.value as? SleepTimerState.EndOfTrack ?: return
+        setEndOfTrack(endOfTrack.fadeOut)
     }
 
     /** End-of-song mode: ExoPlayer paused at the end of the item, so the timer is done. */

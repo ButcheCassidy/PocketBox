@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -91,6 +92,11 @@ fun QueueSheet(onDismiss: () -> Unit, onSaveAsPlaylist: (String) -> Unit) {
             itemsIndexed(queue.playOrder, key = { _, index -> queue.entries.getOrNull(index)?.let { "${it.trackId}-$index" } ?: index }) { position, index ->
                 val entry = queue.entries.getOrNull(index) ?: return@itemsIndexed
                 val dismiss = rememberSwipeToDismissBoxState()
+                // A row that stays after a swipe (the removal did not land, or its key now belongs to a
+                // different song) must not stay swiped away.
+                LaunchedEffect(queue.entries) {
+                    if (dismiss.currentValue != SwipeToDismissBoxValue.Settled) dismiss.snapTo(SwipeToDismissBoxValue.Settled)
+                }
                 SwipeToDismissBox(
                     state = dismiss,
                     backgroundContent = {},

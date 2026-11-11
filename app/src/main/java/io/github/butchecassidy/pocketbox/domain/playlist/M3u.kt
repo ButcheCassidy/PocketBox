@@ -39,9 +39,10 @@ object M3u {
         append("#EXTM3U\n")
         for (item in items) {
             val seconds = item.durationMs / 1000
+            // A line break inside a tag or file name would otherwise start a new, unintended entry.
             val label = "${item.artist} - ${item.title}".replace('\n', ' ').replace('\r', ' ')
             append("#EXTINF:").append(seconds).append(',').append(label).append('\n')
-            append(item.path).append('\n')
+            append(item.path.replace('\n', ' ').replace('\r', ' ')).append('\n')
         }
     }
 }
