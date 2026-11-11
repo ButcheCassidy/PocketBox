@@ -28,6 +28,9 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: write # create the tag and release and upload the APK
+    defaults:
+      run:
+        working-directory: android # the Gradle project lives in android/
     env:
       TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
     steps:
