@@ -39,6 +39,7 @@ jobs:
       TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
     steps:
       - name: Check the version number
+        working-directory: ${{ github.workspace }} # android/ isn't checked out yet
         run: |
           if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
             echo "::error::'$TAG' isn't a version like v1.0.0 or v1.1.0-beta.1."
@@ -99,6 +100,7 @@ jobs:
 
       - name: Remove the signing key
         if: always()
+        working-directory: ${{ github.workspace }} # works even if checkout never happened
         run: rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Publish the GitHub Release
