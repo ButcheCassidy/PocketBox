@@ -21,6 +21,7 @@ import io.github.butchecassidy.pocketbox.ui.library.LibraryScreen
 import io.github.butchecassidy.pocketbox.ui.onboarding.OnboardingScreen
 import io.github.butchecassidy.pocketbox.ui.search.SearchScreen
 import io.github.butchecassidy.pocketbox.ui.settings.EqualizerScreen
+import io.github.butchecassidy.pocketbox.ui.settings.HeldFilesScreen
 import io.github.butchecassidy.pocketbox.ui.settings.LicensesScreen
 import io.github.butchecassidy.pocketbox.ui.settings.SettingsScreen
 import io.github.butchecassidy.pocketbox.ui.settings.SettingsSectionScreen
@@ -59,5 +60,6 @@ fun AppNavHost(navController: NavHostController, startDestination: String) {
         }
         composable(Routes.EQUALIZER) { EqualizerScreen() }
         composable(Routes.LICENSES) { LicensesScreen() }
+        composable(Routes.HELD_FILES) { HeldFilesScreen() }
     }
 }

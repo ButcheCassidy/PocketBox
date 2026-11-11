@@ -82,6 +82,21 @@
     <string name="off">Off</string>
     <string name="no_folders">No folders yet</string>
     <string name="access_lost_short">Access lost: pick it again</string>
+    <string name="held_files">Held-back songs</string>
+    <string name="held_files_body">New songs that hold more than music, art and lyrics</string>
+    <string name="held_files_intro">When a song is first added, Pocket Box checks what else is inside the file. These songs hold something besides music, album art and lyrics, so they were left out. Nothing found inside them was opened or run.</string>
+    <string name="held_files_empty">Nothing held back</string>
+    <string name="held_files_empty_body">Every song checked so far holds only music, tags, album art and lyrics.</string>
+    <string name="add_anyway">Add anyway</string>
+    <string name="add_anyway_title">Add this song anyway?</string>
+    <string name="add_anyway_body">Pocket Box will only ever play the music in \"%1$s\" and never open anything else inside it. Add it only if you trust where it came from.</string>
+    <plurals name="held_notice_title">
+        <item quantity="one">%1$d song held back</item>
+        <item quantity="other">%1$d songs held back</item>
+    </plurals>
+    <string name="held_notice_body">They contain something besides music, album art and lyrics, so Pocket Box left them out of your library. You can look at what was found and add them anyway.</string>
+    <string name="review">Review</string>
+    <string name="later">Later</string>
 
     <!-- Playback settings -->
     <string name="crossfade">Crossfade</string>

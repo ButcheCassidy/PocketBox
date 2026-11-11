@@ -6,9 +6,9 @@ package io.github.butchecassidy.pocketbox.data.scan.tags
  * Returns null for formats Pocket Box can't parse itself; the scanner then asks Android instead.
  */
 object AudioFileReader {
-    fun read(source: ByteSource, options: ReadOptions = ReadOptions.SCAN): ParsedAudio? {
+    fun read(source: ByteSource, options: ReadOptions = ReadOptions.SCAN, observer: TagObserver? = null): ParsedAudio? {
         val reader = BinaryReader(source)
-        val tags = RawTags(options)
+        val tags = RawTags(options, observer)
         val head = reader.peek(0, 12)
         if (head.size < 12) return null
 

@@ -7,10 +7,12 @@ import io.github.butchecassidy.pocketbox.data.db.AlbumEntity
 import io.github.butchecassidy.pocketbox.data.db.ArtistEntity
 import io.github.butchecassidy.pocketbox.data.db.ExcludedFolderEntity
 import io.github.butchecassidy.pocketbox.data.db.FolderEntity
+import io.github.butchecassidy.pocketbox.data.db.HeldFileEntity
 import io.github.butchecassidy.pocketbox.data.db.PocketBoxDatabase
 import io.github.butchecassidy.pocketbox.data.db.ScanIndexRow
 import io.github.butchecassidy.pocketbox.data.db.TrackEntity
 import io.github.butchecassidy.pocketbox.data.prefs.SettingsRepository
+import io.github.butchecassidy.pocketbox.data.scan.integrity.IntegrityFinding
 import io.github.butchecassidy.pocketbox.domain.model.ArtSource
 import io.github.butchecassidy.pocketbox.domain.model.LibraryRoot
 import io.github.butchecassidy.pocketbox.domain.release.ReleaseClassifier
@@ -26,6 +28,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -35,13 +39,20 @@ import java.util.Locale
 sealed interface ScanState {
     data object Idle : ScanState
     data class Running(val filesFound: Int, val filesRead: Int, val filesToRead: Int) : ScanState
-    data class Finished(val trackCount: Int, val added: Int, val removed: Int) : ScanState
+    /** [heldBack]: new files this scan left out because the integrity check found something in them. */
+    data class Finished(val trackCount: Int, val added: Int, val removed: Int, val heldBack: Int) : ScanState
 }
+
+/** A file waiting for the user's decision, with what the integrity check found in it. */
+data class HeldFile(val documentUri: String, val fileName: String, val folderPath: String, val findings: List<IntegrityFinding>)
 
 /**
  * Indexes the user's music folders into Room. Incremental: a file is only re-read when its size or
  * modification time changed. Files are read in parallel batches on the IO dispatcher and written in
  * transactions. A folder that can't be read is reported, never treated as "all songs deleted".
+ *
+ * The first time a file is added it goes through the integrity check. A file holding anything besides
+ * music, tags, album art and lyrics is held back (listed in [heldFiles]) until the user adds it anyway.
  */
 class LibraryScanner(
     private val db: PocketBoxDatabase,
@@ -66,6 +77,21 @@ class LibraryScanner(
     }
 
     val excludedFolders: Flow<List<ExcludedFolderEntity>> = scanDao.allExcludedFolders()
+
+    val heldFiles: Flow<List<HeldFile>> = scanDao.heldFilesWaiting().map { rows ->
+        rows.map { HeldFile(it.documentUri, it.fileName, it.folderPath, IntegrityFinding.decodeAll(it.findings)) }
+    }
+
+    /** The user has seen the "songs held back" notice for the last scan. */
+    fun acknowledgeHeldBack() {
+        _state.update { if (it is ScanState.Finished) it.copy(heldBack = 0) else it }
+    }
+
+    /** The user trusts this file: add it without checking again (unless it changes first). */
+    suspend fun addHeldFileAnyway(documentUri: String) {
+        withContext(io) { scanDao.approveHeldFile(documentUri) }
+        scan()
+    }
 
     /** Adds a folder from the system picker (or re-grants a lost one) and returns false if Android refused. */
     suspend fun addFolder(treeUri: Uri): Boolean = withContext(io) {
@@ -132,6 +158,7 @@ class LibraryScanner(
             var toRead = 0
             var added = 0
             var removed = 0
+            var heldBack = 0
             val lost = mutableSetOf<Long>()
             _state.value = ScanState.Running(0, 0, 0)
 
@@ -146,9 +173,11 @@ class LibraryScanner(
                     _state.value = ScanState.Running(found, read, toRead)
                 }
                 val index = scanDao.scanIndex(folder.id).associateBy { it.documentUri }
+                val held = scanDao.heldFiles(folder.id).associateBy { it.documentUri }
                 val changed = walk.files.filter { file ->
                     val old = index[file.documentUri]
-                    old == null || old.lastModified != file.lastModified || old.fileSize != file.fileSize
+                    val waiting = held[file.documentUri]?.let { !it.approved && it.isSameFile(file) } == true
+                    !waiting && (old == null || old.lastModified != file.lastModified || old.fileSize != file.fileSize)
                 }
                 toRead += changed.size
                 _state.value = ScanState.Running(found, read, toRead)
@@ -159,12 +188,20 @@ class LibraryScanner(
                 changed.chunked(BATCH).forEach { batch ->
                     ensureActive()
                     val now = System.currentTimeMillis()
-                    val entities = coroutineScope {
-                        batch.map { file -> async(readers) { readTrack(file, index[file.documentUri], now, minDurationMs) } }
-                            .awaitAll()
+                    val outcomes = coroutineScope {
+                        batch.map { file ->
+                            async(readers) { readFile(file, index[file.documentUri], held[file.documentUri], now, minDurationMs) }
+                        }.awaitAll()
                     }.filterNotNull()
-                    db.withTransaction { scanDao.upsertTracks(entities) }
-                    added += batch.count { index[it.documentUri] == null }
+                    val tracks = outcomes.filterIsInstance<FileOutcome.Added>()
+                    val heldNow = outcomes.filterIsInstance<FileOutcome.HeldBack>().map { it.file }
+                    db.withTransaction {
+                        scanDao.upsertTracks(tracks.map { it.track })
+                        scanDao.upsertHeldFiles(heldNow)
+                        scanDao.deleteHeldFiles(tracks.map { it.track.documentUri }.filter { it in held })
+                    }
+                    added += tracks.count { index[it.track.documentUri] == null }
+                    heldBack += heldNow.count { held[it.documentUri] == null }
                     read += batch.size
                     _state.value = ScanState.Running(found, read, toRead)
                 }
@@ -175,11 +212,12 @@ class LibraryScanner(
                     val gone = index.values.filter { it.documentUri !in present }.map { it.id }
                     gone.chunked(BATCH).forEach { scanDao.deleteTracks(it) }
                     removed += gone.size
+                    held.keys.filter { it !in present }.chunked(BATCH).forEach { scanDao.deleteHeldFiles(it) }
                 }
             }
             lostFolderIds.value = lost
             rebuildAlbumsAndArtists()
-            _state.value = ScanState.Finished(scanDao.trackCount(), added, removed)
+            _state.value = ScanState.Finished(scanDao.trackCount(), added, removed, heldBack)
         }
     }
 
@@ -241,9 +279,39 @@ class LibraryScanner(
         return WalkResult(files, complete && queue.isEmpty())
     }
 
-    private fun readTrack(file: FileContext, old: ScanIndexRow?, now: Long, minDurationMs: Long): TrackEntity? {
-        val parsed = audioFiles.read(Uri.parse(file.documentUri)) ?: return null
-        return TrackFactory.build(
+    private sealed interface FileOutcome {
+        class Added(val track: TrackEntity) : FileOutcome
+        class HeldBack(val file: HeldFileEntity) : FileOutcome
+    }
+
+    private fun HeldFileEntity.isSameFile(file: FileContext) = fileSize == file.fileSize && lastModified == file.lastModified
+
+    /**
+     * Reads one new or changed file. A file seen for the first time is integrity-checked first, unless
+     * the user already chose "Add anyway" for this exact version. Null when the file can't be read.
+     */
+    private fun readFile(file: FileContext, old: ScanIndexRow?, held: HeldFileEntity?, now: Long, minDurationMs: Long): FileOutcome? {
+        val uri = Uri.parse(file.documentUri)
+        val trusted = held != null && held.approved && held.isSameFile(file)
+        if (old == null && !trusted) {
+            val findings = audioFiles.inspect(uri) ?: return null
+            if (findings.isNotEmpty()) {
+                return FileOutcome.HeldBack(
+                    HeldFileEntity(
+                        documentUri = file.documentUri,
+                        folderId = file.folderId,
+                        fileName = file.fileName,
+                        folderPath = file.folderPath,
+                        fileSize = file.fileSize,
+                        lastModified = file.lastModified,
+                        findings = IntegrityFinding.encodeAll(findings),
+                        heldAt = now,
+                    ),
+                )
+            }
+        }
+        val parsed = audioFiles.read(uri) ?: return null
+        val track = TrackFactory.build(
             file = file,
             stream = parsed.stream,
             tags = parsed.tags,
@@ -251,6 +319,7 @@ class LibraryScanner(
             dateAdded = old?.dateAdded ?: now,
             minDurationMs = minDurationMs,
         )
+        return FileOutcome.Added(track)
     }
 
     private suspend fun updateSidecars(files: List<FileContext>, index: Map<String, ScanIndexRow>) {

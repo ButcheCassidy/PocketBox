@@ -14,6 +14,7 @@ import androidx.room.RoomDatabase
     entities = [
         FolderEntity::class,
         ExcludedFolderEntity::class,
+        HeldFileEntity::class,
         TrackEntity::class,
         TrackFtsEntity::class,
         AlbumEntity::class,

@@ -11,6 +11,23 @@ import kotlinx.coroutines.flow.Flow
 /** Writes made by the library scanner, plus the album/artist rebuild that follows each scan. */
 @Dao
 interface ScanDao {
+    // ---- Files held back by the integrity check ----
+
+    @Query("SELECT * FROM held_files WHERE folderId = :folderId")
+    suspend fun heldFiles(folderId: Long): List<HeldFileEntity>
+
+    @Query("SELECT * FROM held_files WHERE approved = 0 ORDER BY fileName COLLATE NOCASE")
+    fun heldFilesWaiting(): Flow<List<HeldFileEntity>>
+
+    @Upsert
+    suspend fun upsertHeldFiles(files: List<HeldFileEntity>)
+
+    @Query("UPDATE held_files SET approved = 1 WHERE documentUri = :documentUri")
+    suspend fun approveHeldFile(documentUri: String)
+
+    @Query("DELETE FROM held_files WHERE documentUri IN (:documentUris)")
+    suspend fun deleteHeldFiles(documentUris: List<String>)
+
     // ---- Folders ----
 
     @Query("SELECT * FROM folders ORDER BY displayName COLLATE NOCASE")

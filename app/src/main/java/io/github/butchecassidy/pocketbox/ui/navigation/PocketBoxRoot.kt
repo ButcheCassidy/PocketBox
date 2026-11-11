@@ -58,6 +58,7 @@ import io.github.butchecassidy.pocketbox.ui.components.LocalShowMessage
 import io.github.butchecassidy.pocketbox.ui.components.PocketDialog
 import io.github.butchecassidy.pocketbox.ui.nowplaying.MiniPlayer
 import io.github.butchecassidy.pocketbox.ui.nowplaying.NowPlayingScreen
+import io.github.butchecassidy.pocketbox.ui.settings.HeldFilesNotice
 import io.github.butchecassidy.pocketbox.ui.support.DonationReminderHost
 import kotlinx.coroutines.launch
 
@@ -217,6 +218,7 @@ fun PocketBoxRoot(startDestination: String, openNowPlayingRequest: Boolean, onNo
             onOpenArtist = { nowPlaying.expanded = false; navigator.go(Routes.artist(it)) },
         )
         ClearQueueDialog()
+        if (!nowPlaying.expanded) HeldFilesNotice()
         if (route == Routes.LIBRARY && !nowPlaying.expanded) DonationReminderHost()
     }
 }
