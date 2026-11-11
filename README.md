@@ -146,7 +146,7 @@ Android also adds one internal signature-level permission that only Pocket Box i
 | Pixel 10 | Pixel 10 | Supported |
 | Pixel 10 Pro | Pixel 10 | Supported |
 | Pixel 10 Pro XL | Pixel 10 | Supported |
-| Later non-Fold Pixels supported by GrapheneOS | Future | Should work |
+
 
 **Pixel 9 Pro Fold, Pixel 10 Pro Fold and all other Fold models are not supported.** Pixel 7 and older are not supported either.
 
