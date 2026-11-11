@@ -22,7 +22,7 @@ Pocket Box follows the layered structure Google recommends for Android apps, wit
  ┌──────────────────────────── data ──────────────────────────┐
  │  Room (library, FTS4 search, playlists, history, queue)    │
  │  DataStore (settings, onboarding, reminder state)          │
- │  Scanner (SAF folders → tags/quality → Room)               │
+ │  Scanner (SAF folders → integrity check → tags → Room)     │
  │  Artwork cache (disk + memory LRU), lyrics loader          │
  └──────────────────────────────┬─────────────────────────────┘
                                 │
@@ -69,6 +69,7 @@ io.github.butchecassidy.pocketbox
 │   ├── db/                         Room database, entities, DAOs, FTS4 table
 │   ├── prefs/                      DataStore: settings, onboarding, reminder state
 │   ├── scan/                       SAF folder access, tag & header readers, scanner
+│   │   └── integrity/              First-add integrity check (what else a file holds)
 │   ├── art/                        Artwork extraction, disk thumbnail cache, memory LRU
 │   ├── lyrics/                     Embedded + sidecar .lrc loading
 │   └── repo/                       Library, playlist, history, search, queue repositories
@@ -98,7 +99,7 @@ io.github.butchecassidy.pocketbox
 │   ├── OutputMonitor.kt            Output device, formats, resampling, bit-perfect (AudioMixerAttributes)
 │   ├── PlayerConnection.kt         UI side: MediaController → StateFlows and commands
 │   └── QueueController.kt          UI side: "tap a song" rules, confirm dialog, undo
-├── widget/                         Jetpack Glance home-screen widget
+├── widget/                         Jetpack Glance home-screen widget and its state
 └── ui/
     ├── theme/                      MaterialExpressiveTheme, HCT colour schemes, tokens
     ├── components/                 TrackRow, AlbumCard, AlbumRow, ArtistRow, ArtImage, QualityBadge,
@@ -109,12 +110,13 @@ io.github.butchecassidy.pocketbox
     ├── detail/                     Album, artist, playlist, folder pages
     ├── search/                     Expressive search bar + results
     ├── nowplaying/                 Now Playing, mini player, lyrics, queue, quality sheets
-    ├── settings/                   Settings sections, colour picker, equalizer, about, licences
+    ├── settings/                   Settings sections, colour picker, equalizer, about, licences,
+    │                               held-back songs
     └── support/                    Donation reminder dialog
 ```
 
 Other modules:
-- `:baselineprofile` generates startup and scrolling Baseline Profiles for `:app`.
+- `:baselineprofile` generates startup and scrolling Baseline Profiles for `:app` on a connected phone, and benchmarks cold start. It is test-only and never ships in the APK.
 
 ## Screens and navigation
 
@@ -134,12 +136,13 @@ Other modules:
 | `settings/{section}` | Library · Appearance · Playback · Audio · Privacy · About | Settings home |
 | `equalizer` | 10-band equalizer + bass boost + presets | Settings → Audio, Now Playing menu |
 | `licenses` | Third-party licences | About |
+| `held` | Songs the integrity check held back, with what was found and "Add anyway" | Settings → Library; the notice after a scan |
 
 **Now Playing is an overlay, not a route.** It expands from the mini player over everything (shared-element art transition) and collapses with back, so the library keeps its place underneath.
 
 Bottom sheets (not routes): queue, lyrics, audio-quality details, track info, sleep timer, speed & pitch, song and release actions.
 
-Adaptive navigation: Library · Search · Settings in an expressive `ShortNavigationBar` on narrow screens and a `WideNavigationRail` at 600 dp and wider (landscape). The mini player sits above the bar.
+Adaptive navigation: Library · Search · Settings in an expressive `ShortNavigationBar` on narrow screens and a `WideNavigationRail` at 600 dp and wider (landscape), chosen from the screen width. The mini player sits above the bar.
 
 ## Data model (Room)
 
@@ -156,9 +159,20 @@ Adaptive navigation: Library · Search · Settings in an expressive `ShortNaviga
 | `queue_items`, `queue_state` | The saved queue, shuffle order and position |
 | `eq_presets` | Saved custom equalizer presets |
 | `excluded_folders` | Subfolders the user left out of the library |
+| `held_files` | New files the integrity check held back, their findings and the user's "Add anyway" |
 
 Albums and artists are derived from `tracks` with indexed `GROUP BY` queries, so there is only one copy of the truth.
 
+## The integrity check
+
+The first time the scanner meets a file, `IntegrityInspector` reads its structure before anything is added: ID3v2 frames, APE/Lyrics3/ID3v1 footers, FLAC metadata blocks and frame CRCs, Ogg pages and streams, MP4 boxes and track types, WAV/AIFF chunks. Every embedded picture and text tag goes through the same report, through a `TagObserver` hooked into the normal tag readers. It reports what doesn't belong in a music file (embedded files, program code or archives, data after the album art or after the audio, filled-in padding, other programs' blocks, extra streams, script in text tags) and ignores well-known harmless extras.
+
+A file with findings becomes a `held_files` row instead of a track. It is not checked again while it stays the same; the user can review it and choose "Add anyway", after which that exact version (same size and modification time) is added without another check. Files already in the library are never re-checked, even when they change. Nothing found is ever opened or decoded.
+
+## The widget
+
+`NowPlayingWidget` (Jetpack Glance) shows the art, title, artist and controls. The playback service publishes a small `WidgetSnapshot` into the `AppContainer`; `WidgetRefresher` redraws placed widgets only when the song, play state or look changes (debounced). Colours come from the same scheme builder as the app. Its buttons go through the app's own `MediaController`, like every other control.
+
 ## Security model in one paragraph
 
-Pocket Box has no network permission, reads only the folders the user picks through the system file picker, treats every file as hostile (size caps, defensive parsing, no crash on bad data), exports only the media service and the widget receiver, uses immutable PendingIntents, strips logs from release builds, excludes all data from backups, and contains no WebView, no reflection tricks and no dynamically loaded code. See [SECURITY.md](../SECURITY.md).
+Pocket Box has no network permission, reads only the folders the user picks through the system file picker, treats every file as hostile (size caps, defensive parsing, no crash on bad data), checks each new file for hidden contents and holds suspicious ones back, exports only the media service and the widget receiver, uses immutable PendingIntents, strips logs from release builds, excludes all data from backups, and contains no WebView, no reflection tricks and no dynamically loaded code. See [SECURITY.md](../SECURITY.md).

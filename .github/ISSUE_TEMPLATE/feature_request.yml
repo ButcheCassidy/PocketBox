@@ -1,0 +1,26 @@
+# Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
+name: Feature request
+description: An idea to make Pocket Box better.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Pocket Box is offline by design, so ideas that need the internet (streaming, online lyrics or artwork, accounts) won't be added.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe what you're trying to do, not only the solution you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could Pocket Box help?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you've tried instead

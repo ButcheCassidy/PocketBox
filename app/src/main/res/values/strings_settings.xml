@@ -144,7 +144,7 @@
     <string name="source_code">Source code</string>
     <string name="source_code_url" translatable="false">github.com/ButcheCassidy/PocketBox</string>
     <string name="source_code_note">Source-available under PolyForm Strict 1.0.0. Pocket Box makes no network calls, so the link is shown as text.</string>
-    <string name="licenses">Open-source licences</string>
+    <string name="licenses">Third-party licences</string>
     <string name="licenses_body">Libraries Pocket Box is built with</string>
     <string name="support_pocket_box">Support Pocket Box</string>
     <string name="support_body">Opens the donation page in your browser</string>

@@ -103,7 +103,7 @@ android {
     lint {
         abortOnError = true
         checkReleaseBuilds = true
-        // Expressive Material 3 is the one approved pre-release dependency (see VERSIONS.md).
+        // Expressive Material 3 is the one approved pre-release dependency (see BUILDING.md, "Versions").
         disable += listOf("GradleDependency", "NewerVersionAvailable", "AndroidGradlePluginVersion")
     }
 }
@@ -141,7 +141,6 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material3.adaptive)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.graphics.shapes)
     debugImplementation(libs.androidx.compose.ui.tooling)
