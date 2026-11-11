@@ -22,14 +22,15 @@ Only the latest release gets security fixes.
 
 | Threat | How Pocket Box handles it |
 |---|---|
-| A booby-trapped music file (a crafted tag, a lying length field, a huge picture) aimed at crashing the app or running code | Every file is treated as hostile. Pocket Box's own tag readers check every length against the file size and hard caps (16 MB per picture or block, 1 MB per `.lrc` file, 4 MB per playlist, capped text and tag counts), never trust offsets, and turn any damage into "skip this file", never a crash. No native code of its own. |
-| A music file that carries something else: an app, an archive, a script, data hidden after the picture or the music | The **integrity check** runs on every file the first time it's added and holds back anything that holds more than music, tags, album art and lyrics, until you decide. Nothing found is ever opened, extracted or run; only the audio is ever decoded. |
-| A playlist that tries to reach files outside your music folders (`../../`) | `.m3u` imports resolve only inside the folders you granted, with path traversal rejected. |
-| Another app on the phone trying to read your library or control playback | Only the playback service and the home-screen widget receiver are exported (the libraries' remaining exported parts accept only Android itself, through system-only permissions; WorkManager's diagnostics receiver is removed). Apps Android doesn't trust may only play, pause and skip, and can't see the queue or browse the library. The widget receiver only redraws the widget, so a message from another app can at most cause a redraw. Every `PendingIntent` Pocket Box creates is immutable. |
+| A booby-trapped music file (a crafted tag, a lying length field, a huge picture) aimed at crashing the app or running code | Every file is treated as hostile. Pocket Box's own tag readers check every length against the file size and hard caps (16 MB per picture or block, 1 MB per `.lrc` file, 4 MB per playlist, capped text and tag counts), never trust offsets, and turn any damage into "skip this file" (or, the first time a file is added, "hold it back for you to decide"), never a crash. Thousands of deliberately damaged files are part of the automated tests. No native code of its own. |
+| A music file that carries something else: an app, an archive, a script, data hidden after the picture or the music | The **integrity check** runs on every file the first time it's added and holds back anything that holds more than music, tags, album art and lyrics, until you decide. Nothing found is ever opened, extracted or run; only the audio and the album-art pictures are ever decoded. |
+| A playlist that tries to reach files outside your music folders (`../../`) | `.m3u` imports resolve only inside the folders you granted, with path traversal rejected, and only ever match songs already in your library. |
+| Another app on the phone trying to read your library or control playback | Besides the launcher screen, only the playback service and the home-screen widget receiver are exported (the libraries' remaining exported parts accept only Android itself, through system-only permissions; WorkManager's diagnostics receiver is removed). Apps Android doesn't trust may only play, pause, skip and see the current song; they can't see the queue or browse the library. The widget receiver only redraws the widget, so a message from another app can at most cause a redraw. Every `PendingIntent` Pocket Box creates is immutable. |
 | Data leaking off the phone | No `INTERNET` permission, so Pocket Box can't send anything anywhere. No analytics, crash reporting or update checks. All app data is excluded from cloud backups and device-to-device transfer. |
-| Leaking through logs | Release builds strip all `Log` calls; file paths and library contents are never logged. |
-| A tampered or impostor APK | Releases are signed with the owner's key (v2 and v3 signatures) and published with a SHA-256 checksum. Android refuses updates signed with a different key. |
-| Supply-chain attacks through dependencies | Libraries only from Google Maven and Maven Central (official AndroidX, Media3, Kotlin and JetBrains artifacts), at pinned versions; the Gradle wrapper download is checksum-verified; GitHub Actions are pinned to full commit SHAs. |
+| Leaking through logs | Pocket Box's own code never logs file paths or library contents, and release builds strip every log call from the app and the libraries inside it. (Android's own system components keep their usual logs, which only apps with special system access can read.) |
+| A tampered or impostor APK | Releases are signed with the owner's key (APK Signature Scheme v3, which Android 14 and later check) and published with a SHA-256 checksum. Android refuses updates signed with a different key. You can check who signed an APK yourself: its certificate SHA-256 must be `8E:0E:20:BD:52:8D:62:BF:D6:0A:D7:29:7B:24:F6:6B:B2:62:F2:7D:EE:FF:F5:85:03:A1:14:03:A8:F5:24:60` (see BUILDING.md, step 6, or use GrapheneOS's AppVerifier with the package name `io.github.butchecassidy.pocketbox`). |
+| Supply-chain attacks through dependencies | Libraries come only from Google Maven and Maven Central, and Pocket Box asks for nothing but official AndroidX, Media3, Kotlin and JetBrains artifacts, at pinned versions. Build plugins come from the same two places, plus the Gradle Plugin Portal for Gradle's own plugins only. The Gradle download is checksum-verified, and the release workflow uses only official GitHub and Gradle actions, pinned to full commit SHAs. |
+| Someone impersonating the project to collect donations | The only real donation addresses are the ones in [DONATE.md](DONATE.md) in this repository. Pocket Box itself never handles money or payment details. |
 
 ## Permissions, and why
 
@@ -47,7 +48,7 @@ Music is reached only through Android's folder picker (the Storage Access Framew
 
 - Works with the Network permission switched off (it never asks for it).
 - No dynamically loaded code, no WebView, no `JavascriptInterface`, no reflection tricks: safe under GrapheneOS's dynamic-code-loading restrictions and ahead-of-time compilation.
-- 64-bit only, no custom native code; debug builds turn on synchronous memory tagging (MTE) so memory bugs show up during testing.
+- 64-bit only. No native code of its own: the only native parts are two small official AndroidX libraries (graphics paths and DataStore). Debug builds turn on synchronous memory tagging (MTE) so memory bugs show up during testing.
 - No sensors, contacts, location or camera access.
 
 ## What the integrity check can and can't do
@@ -57,3 +58,9 @@ It knows how audio files are put together and flags whatever doesn't belong. It'
 ## Signing keys
 
 The signing key never goes into this repository. `keystore.properties`, `*.jks`, `*.keystore`, `*.p12` and `*.pem` are in `.gitignore`, and the build reads the key from that local file or from encrypted GitHub secrets.
+
+---
+
+I maintain Pocket Box and take responsibility for what this page promises. If anything here turns out to be wrong or unclear, please report it as above and I'll put it right.
+
+**ButcheCassidy - The Nomadic Rebel** · last reviewed 2026-11-11
