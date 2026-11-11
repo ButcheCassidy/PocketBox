@@ -4,9 +4,9 @@
 
 Pocket Box is an offline music player for Android, built with Material 3 Expressive. It plays the music you already keep on your phone, shows you exactly what quality you're hearing, and stays out of your business.
 
-**Who it's for:** people who keep MP3s or lossless music (FLAC, ALAC, WAV, AIFF and more) stored locally on their device.
+**Who it's for:** people who keep MP3s or lossless music (FLAC, ALAC, WAV, AIFF and more), and their audiobooks, stored locally on their device.
 
-**Runs on:** Built for Google Pixel 8 and newer (Fold models excluded), on GrapheneOS or stock Android 14+.
+**Runs on:** Google Pixel 6 and newer (Fold models excluded), on GrapheneOS or stock Android 14+.
 
 ---
 
@@ -46,7 +46,7 @@ Let's get this out of the way first, because it matters:
 - A big play button that **morphs its shape**, a circle when paused and a rounded square when playing
 - A **wavy progress bar** that ripples while music plays and flattens when you pause
 - Previous, play and next in an **expressive button group** that squishes and nudges as you press
-- A **perfectly centred Now Playing screen**: art, title, quality chips, progress bar and controls all share one centre line, on every Pixel from the 8 to the 10 Pro XL
+- A **perfectly centred Now Playing screen**: art, title, quality chips, progress bar and controls all share one centre line, on every Pixel from the 6 to the 10 Pro XL
 - A softly **blurred copy of the album art** behind everything, tinted so text always stays readable
 - **Swipe the art to skip**: it follows your finger, the next cover slides in, and the art shrinks gently while you drag, just like it does when paused
 - **Tap the art to flip it** and read the lyrics in the same square
@@ -60,7 +60,7 @@ Let's get this out of the way first, because it matters:
 - You choose all this on first launch, with a live preview of Now Playing
 
 ### A tidy library
-- **Albums**, **Singles & EPs**, **Songs**, **Artists**, **Playlists** and **Folders**, in tabs you can reorder or hide; the app reopens on the tab you left
+- **Albums**, **Singles & EPs**, **Songs**, **Artists**, **Playlists**, **Folders** and **Audiobooks**, in tabs you can reorder or hide; the app reopens on the tab you left
 - Albums sorted by album artist, then year, then title; each album lists its songs disc by disc, track by track
 - Singles and EPs get their own shelf, from your tags or worked out from the track count and length, and you can override it
 - Every song in strict A–Z order, with letter headers and a fast-scroll letter rail
@@ -101,8 +101,20 @@ Common harmless extras (store IDs, encoder notes, ReplayGain values, cue sheets,
 
 When something is found, Pocket Box **holds that song back** and tells you. Under **Settings → Library → Held-back songs** you can see exactly what was found and where, and add the song anyway if you trust it. Pocket Box never opens or runs anything it finds. It only ever plays the audio.
 
+### Audiobooks, kept apart
+Mark any of your folders as an **audiobook folder** (Settings → Library) and everything inside moves out of your music and into its own **Audiobooks** tab. Your albums, songs, artists, search and history stay music only.
+
+- Each book shows how far along you are and how much is left
+- **Your place is saved automatically** every few seconds, and whenever you pause, skip or close the app
+- **Bookmarks**: tap the bookmark button in Now Playing to save the exact spot; jump back to any of them from the book's page
+- When you come back, Pocket Box asks **"Pick up where you left off?"** and offers **Continue**, or a jump to one of your latest bookmarks
+- Back 30 seconds and forward 30 seconds buttons, and chapters always play in order (no shuffle, no crossfade)
+- Playback speed works as usual, for those long trails
+
 ### Lyrics and widget
 - Lyrics from your own `.lrc` files or embedded tags. Synced lyrics scroll smoothly with the current line highlighted, and you can tap a line to jump there.
+- **Word-by-word lyrics**: with "enhanced" `.lrc` files that time each word (`<mm:ss.xx>`), the words light up as they're sung, karaoke style
+- **Lyrics a little early or late?** Nudge the timing for that song in quarter-second steps right in the lyrics view; Pocket Box remembers it
 - A home-screen widget with the art, the song and the controls, in your chosen colours
 
 ## Supported formats
@@ -136,6 +148,12 @@ Android also adds one internal signature-level permission that only Pocket Box i
 
 | Device | Series | Status |
 |---|---|---|
+| Pixel 6 | Pixel 6 | Supported |
+| Pixel 6 Pro | Pixel 6 | Supported |
+| Pixel 6a | Pixel 6 | Supported |
+| Pixel 7 | Pixel 7 | Supported |
+| Pixel 7 Pro | Pixel 7 | Supported |
+| Pixel 7a | Pixel 7 | Supported |
 | Pixel 8 | Pixel 8 | Supported |
 | Pixel 8 Pro | Pixel 8 | Supported |
 | Pixel 8a | Pixel 8 | Supported |
@@ -147,10 +165,9 @@ Android also adds one internal signature-level permission that only Pocket Box i
 | Pixel 10 Pro | Pixel 10 | Supported |
 | Pixel 10 Pro XL | Pixel 10 | Supported |
 
+**Pixel Fold, Pixel 9 Pro Fold, Pixel 10 Pro Fold and all other Fold models are not supported.** Pixel 5 and older are not supported either.
 
-**Pixel 9 Pro Fold, Pixel 10 Pro Fold and all other Fold models are not supported.** Pixel 7 and older are not supported either.
-
-Why Pixel 8 is the minimum: it ships with Android 14, which the USB DAC bit-perfect mode needs; it's 64-bit only, so the app carries only 64-bit code and stays small; and on GrapheneOS it has hardware memory tagging, which catches memory bugs before they become security problems.
+Why Pixel 6 is the minimum: it's the oldest Pixel that runs Android 14, which Pocket Box and its USB DAC bit-perfect mode need, and the oldest one GrapheneOS still supports; and it runs 64-bit apps, so the app carries only 64-bit code and stays small. On the Pixel 8 and newer, GrapheneOS also uses hardware memory tagging, which catches memory bugs before they become security problems.
 
 ## Saddle up
 

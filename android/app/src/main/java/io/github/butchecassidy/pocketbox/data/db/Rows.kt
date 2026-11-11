@@ -21,7 +21,7 @@ const val TRACK_COLUMNS = "tracks.id, tracks.documentUri, tracks.title, tracks.a
     "tracks.durationMs, tracks.codec, tracks.sampleRate, tracks.bitDepth, tracks.bitrate, tracks.bitrateMode, " +
     "tracks.channels, tracks.rgTrackGain, tracks.rgTrackPeak, tracks.rgAlbumGain, tracks.rgAlbumPeak, " +
     "tracks.artUri, tracks.artSource, tracks.artVersion, tracks.lrcUri, tracks.hasEmbeddedLyrics, " +
-    "tracks.titleLetter, tracks.dateAdded"
+    "tracks.titleLetter, tracks.dateAdded, tracks.isAudiobook"
 
 data class TrackRow(
     val id: Long,
@@ -58,6 +58,7 @@ data class TrackRow(
     val hasEmbeddedLyrics: Boolean,
     val titleLetter: String,
     val dateAdded: Long,
+    val isAudiobook: Boolean,
 ) {
     fun toTrack() = Track(
         id = id,
@@ -91,6 +92,7 @@ data class TrackRow(
         hasEmbeddedLyrics = hasEmbeddedLyrics,
         dateAddedMs = dateAdded,
         sortLetter = titleLetter,
+        isAudiobook = isAudiobook,
     )
 }
 

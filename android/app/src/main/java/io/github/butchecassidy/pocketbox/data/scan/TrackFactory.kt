@@ -23,6 +23,7 @@ data class FileContext(
     val fileSize: Long,
     val lastModified: Long,
     val folderArt: SidecarFile?,
+    val isAudiobook: Boolean,
     val lyricsFile: SidecarFile?,
 )
 
@@ -112,6 +113,7 @@ object TrackFactory {
             albumArtistSortTag = albumArtistSortTag,
             titleLetter = SortKeys.letter(title, tags.first(RawTags.TITLE_SORT)),
             isHidden = durationMs < minDurationMs,
+            isAudiobook = file.isAudiobook,
             dateAdded = dateAdded,
         )
     }

@@ -28,15 +28,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.butchecassidy.pocketbox.R
 import io.github.butchecassidy.pocketbox.domain.model.RepeatMode
+import io.github.butchecassidy.pocketbox.domain.model.Track
 import io.github.butchecassidy.pocketbox.playback.PlayerState
 import io.github.butchecassidy.pocketbox.playback.QueueState
+import io.github.butchecassidy.pocketbox.ui.Format
 import io.github.butchecassidy.pocketbox.ui.LocalAppContainer
+import io.github.butchecassidy.pocketbox.ui.components.LocalShowMessage
 import io.github.butchecassidy.pocketbox.ui.components.PocketIconButton
 import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
 import io.github.butchecassidy.pocketbox.ui.navigation.Routes
@@ -62,6 +66,9 @@ fun NowPlayingScreen(onCollapse: () -> Unit, sharedScope: SharedTransitionScope,
     val track by vm.track.collectAsStateWithLifecycle()
     val lyrics by vm.lyrics.collectAsStateWithLifecycle()
     val favorite by vm.isFavorite.collectAsStateWithLifecycle()
+    val lyricOffset by vm.lyricOffset.collectAsStateWithLifecycle()
+    val showMessage = LocalShowMessage.current
+    val resources = LocalResources.current
     val output by vm.output.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val position by rememberPositionMs(container.player, state)
@@ -84,7 +91,7 @@ fun NowPlayingScreen(onCollapse: () -> Unit, sharedScope: SharedTransitionScope,
                 hasNext = canGoForward,
                 onPrevious = player::previous,
                 onNext = player::next,
-                lyrics = { LyricsView(lyrics, position, player::seekTo, large = false) },
+                lyrics = { LyricsView(lyrics, position, player::seekTo, large = false, offsetMs = lyricOffset) },
                 modifier = Modifier.sharedElement(rememberSharedContentState(NOW_PLAYING_ART_KEY), visibilityScope),
             )
         }
@@ -118,31 +125,45 @@ fun NowPlayingScreen(onCollapse: () -> Unit, sharedScope: SharedTransitionScope,
                 onToggle = player::togglePlay,
                 onNext = player::next,
             )
-            SecondaryControls(
-                shuffle = state.shuffle,
-                repeat = state.repeat,
-                favorite = favorite,
-                onShuffle = { player.setShuffle(!state.shuffle) },
-                onRepeat = player::cycleRepeat,
-                onFavorite = vm::toggleFavorite,
-                onLyrics = { sheet = NowPlayingSheet.LYRICS },
-                onQueue = { sheet = NowPlayingSheet.QUEUE },
-                width = width,
-            )
+            if (state.bookKey != null) {
+                BookControls(
+                    onBack = { player.seekTo(player.positionMs() - SKIP_MS) },
+                    onBookmark = {
+                        val at = player.positionMs()
+                        if (vm.addBookmark(at)) showMessage(resources.getString(R.string.bookmark_added, Format.duration(at)))
+                    },
+                    onLyrics = { sheet = NowPlayingSheet.LYRICS },
+                    onQueue = { sheet = NowPlayingSheet.QUEUE },
+                    onForward = { player.seekTo(player.positionMs() + SKIP_MS) },
+                    width = width,
+                )
+            } else {
+                SecondaryControls(
+                    shuffle = state.shuffle,
+                    repeat = state.repeat,
+                    favorite = favorite,
+                    onShuffle = { player.setShuffle(!state.shuffle) },
+                    onRepeat = player::cycleRepeat,
+                    onFavorite = vm::toggleFavorite,
+                    onLyrics = { sheet = NowPlayingSheet.LYRICS },
+                    onQueue = { sheet = NowPlayingSheet.QUEUE },
+                    width = width,
+                )
+            }
         }
     }
 
     Box(Modifier.fillMaxSize()) {
         NowPlayingBackground(state.art, state.album, settings.nowPlayingStyle)
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
-            TopRow(onCollapse, onSheet = { sheet = it }, trackAlbumKey = track?.albumKey, trackArtistKey = track?.artistKey)
+            TopRow(onCollapse, onSheet = { sheet = it }, track = track)
             NowPlayingLayout(art, details)
         }
     }
 
     when (sheet) {
         NowPlayingSheet.QUEUE -> QueueSheet(onDismiss = { sheet = null }, onSaveAsPlaylist = vm::saveQueueAsPlaylist)
-        NowPlayingSheet.LYRICS -> LyricsSheet(lyrics, position, player::seekTo) { sheet = null }
+        NowPlayingSheet.LYRICS -> LyricsSheet(lyrics, position, player::seekTo, lyricOffset, vm::nudgeLyrics, vm::resetLyricsTiming) { sheet = null }
         NowPlayingSheet.QUALITY -> QualitySheet(track, output) { sheet = null }
         NowPlayingSheet.SLEEP -> SleepTimerSheet(vm) { sheet = null }
         NowPlayingSheet.SPEED -> SpeedSheet(settings.playbackSpeed, settings.playbackPitch, settings.bitPerfect, vm::setSpeedAndPitch) { sheet = null }
@@ -154,8 +175,7 @@ fun NowPlayingScreen(onCollapse: () -> Unit, sharedScope: SharedTransitionScope,
 private fun TopRow(
     onCollapse: () -> Unit,
     onSheet: (NowPlayingSheet) -> Unit,
-    trackAlbumKey: String?,
-    trackArtistKey: String?,
+    track: Track?,
 ) {
     val navigator = LocalNavigator.current
     var menuOpen by remember { mutableStateOf(false) }
@@ -169,11 +189,16 @@ private fun TopRow(
                 DropdownMenuItem(text = { Text(stringResource(R.string.speed_and_pitch)) }, onClick = { menuOpen = false; onSheet(NowPlayingSheet.SPEED) })
                 DropdownMenuItem(text = { Text(stringResource(R.string.equalizer)) }, onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.EQUALIZER) })
                 DropdownMenuItem(text = { Text(stringResource(R.string.audio_quality)) }, onClick = { menuOpen = false; onSheet(NowPlayingSheet.QUALITY) })
-                if (trackAlbumKey != null) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.action_go_to_album)) }, onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.album(trackAlbumKey)) })
-                }
-                if (trackArtistKey != null) {
-                    DropdownMenuItem(text = { Text(stringResource(R.string.action_go_to_artist)) }, onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.artist(trackArtistKey)) })
+                when {
+                    track == null -> Unit
+                    track.isAudiobook -> DropdownMenuItem(
+                        text = { Text(stringResource(R.string.action_go_to_book)) },
+                        onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.book(track.albumKey)) },
+                    )
+                    else -> {
+                        DropdownMenuItem(text = { Text(stringResource(R.string.action_go_to_album)) }, onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.album(track.albumKey)) })
+                        DropdownMenuItem(text = { Text(stringResource(R.string.action_go_to_artist)) }, onClick = { menuOpen = false; onCollapse(); navigator.go(Routes.artist(track.artistKey)) })
+                    }
                 }
             }
         }
@@ -193,3 +218,5 @@ private fun neighbours(queue: QueueState, state: PlayerState): ArtNeighbours {
     return ArtNeighbours(previous?.art, previous?.let { "q-${it.index}" }, next?.art, next?.let { "q-${it.index}" })
 }
 
+/** How far the audiobook skip buttons jump. */
+private const val SKIP_MS = 30_000L

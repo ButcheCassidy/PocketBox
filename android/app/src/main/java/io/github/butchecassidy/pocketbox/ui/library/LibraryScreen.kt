@@ -91,6 +91,7 @@ import io.github.butchecassidy.pocketbox.ui.components.PocketTopBar
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
 import io.github.butchecassidy.pocketbox.ui.components.TrackRow
 import io.github.butchecassidy.pocketbox.ui.components.artistCounts
+import io.github.butchecassidy.pocketbox.ui.detail.BookProgressLine
 import io.github.butchecassidy.pocketbox.ui.navigation.FacetType
 import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
 import io.github.butchecassidy.pocketbox.ui.navigation.Routes
@@ -108,10 +109,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun LibraryScreen() {
     val vm = pocketViewModel { LibraryViewModel(it) }
-    val settings by vm.settings.collectAsStateWithLifecycle()
+    val visibleTabs by vm.tabs.collectAsStateWithLifecycle()
     val initialTab by vm.initialTab.collectAsStateWithLifecycle()
     val navigator = LocalNavigator.current
-    val tabs = settings.visibleTabs
+    val tabs = visibleTabs ?: return
     val start = initialTab ?: return
     val pager = rememberPagerState(initialPage = tabs.indexOf(start).coerceAtLeast(0)) { tabs.size }
     val scope = rememberCoroutineScope()
@@ -157,6 +158,7 @@ fun LibraryScreen() {
                     LibraryTab.ARTISTS -> ArtistsTab(vm)
                     LibraryTab.PLAYLISTS -> PlaylistsTab(vm)
                     LibraryTab.FOLDERS -> FoldersTab(vm)
+                    LibraryTab.AUDIOBOOKS -> AudiobooksTab(vm)
                 }
             }
         }
@@ -578,6 +580,40 @@ private fun FoldersTab(vm: LibraryViewModel) {
                 leadingContent = { Icon(painterResource(R.drawable.ic_folder), null) },
                 trailingContent = { Text(folder.trackCount.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 modifier = Modifier.clickable { navigator.go(Routes.folder(folder.uri)) },
+            )
+        }
+    }
+}
+
+/** Audiobooks, kept apart from the music: books being listened to first, each with its progress. */
+@Composable
+private fun AudiobooksTab(vm: LibraryViewModel) {
+    val books by vm.books.collectAsStateWithLifecycle()
+    val navigator = LocalNavigator.current
+    val sizes = LocalSizes.current
+    val spacing = LocalSpacing.current
+    val state = rememberRestoredListState(LibraryTab.AUDIOBOOKS, vm) ?: return
+    if (books.isEmpty()) {
+        return EmptyState(
+            R.drawable.ic_auto_stories,
+            stringResource(R.string.audiobooks_empty_title),
+            stringResource(R.string.audiobooks_empty_body),
+            actionLabel = stringResource(R.string.settings),
+            onAction = { navigator.go(Routes.settings(SettingsSection.LIBRARY)) },
+        )
+    }
+    LazyColumn(state = state, contentPadding = PaddingValues(bottom = LocalChromePadding.current.calculateBottomPadding())) {
+        items(books, key = { it.key }) { book ->
+            ListItem(
+                headlineContent = { Text(book.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                supportingContent = {
+                    Column {
+                        Text(book.author, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        BookProgressLine(book, Modifier.fillMaxWidth().padding(top = spacing.half))
+                    }
+                },
+                leadingContent = { ArtImage(book.art, sizes.bookCover, book.key, Modifier.size(sizes.bookCover)) },
+                modifier = Modifier.clickable { navigator.go(Routes.book(book.key)) },
             )
         }
     }

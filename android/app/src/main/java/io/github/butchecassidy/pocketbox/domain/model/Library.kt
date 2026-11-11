@@ -61,6 +61,8 @@ data class Track(
     val dateAddedMs: Long,
     /** The letter header this song files under in the A–Z list ("#" for numbers and symbols). */
     val sortLetter: String,
+    /** A chapter of an audiobook; [albumKey] then names the book. */
+    val isAudiobook: Boolean = false,
 ) {
     val durationMs: Long get() = quality.durationMs
 }
@@ -105,6 +107,8 @@ data class LibraryRoot(
     val treeUri: String,
     val name: String,
     val isAccessible: Boolean,
+    /** Everything in it is an audiobook. */
+    val isAudiobooks: Boolean = false,
 )
 
 /** A user playlist. */
@@ -118,3 +122,35 @@ data class Playlist(
 
 /** A browsable value such as a genre, year or composer, with how many songs it has. */
 data class Facet(val value: String, val trackCount: Int)
+
+/** An audiobook: the chapters (files) sharing one album key inside an audiobook folder, in order. */
+data class Audiobook(
+    val key: String,
+    val title: String,
+    val author: String,
+    val art: ArtRef?,
+    val chapters: List<Track>,
+    val progress: BookProgress?,
+) {
+    val durationMs: Long = chapters.sumOf { it.durationMs }
+
+    /** Index of the chapter to continue in, or -1 when the book was never started. */
+    val progressChapter: Int = progress?.let { p -> chapters.indexOfFirst { it.id == p.trackId } } ?: -1
+
+    /** Time listened so far: all chapters before the saved one, plus the spot inside it. */
+    val listenedMs: Long = if (progressChapter < 0) 0L else
+        chapters.take(progressChapter).sumOf { it.durationMs } + (progress?.positionMs ?: 0L)
+
+    val isFinished: Boolean get() = durationMs > 0 && durationMs - listenedMs <= FINISHED_SLACK_MS
+
+    private companion object {
+        /** The last half minute is usually credits; past it a book counts as finished. */
+        const val FINISHED_SLACK_MS = 30_000L
+    }
+}
+
+/** Where listening stopped in a book. */
+data class BookProgress(val trackId: Long, val positionMs: Long, val updatedAtMs: Long)
+
+/** A spot in a book the user saved. */
+data class Bookmark(val id: Long, val trackId: Long, val positionMs: Long, val createdAtMs: Long)

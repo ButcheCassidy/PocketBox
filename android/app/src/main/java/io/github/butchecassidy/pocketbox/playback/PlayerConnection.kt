@@ -57,6 +57,10 @@ data class PlayerState(
     val hasPrevious: Boolean = false,
     val speed: Float = 1f,
     val pitch: Float = 1f,
+    /** The audiobook the current chapter belongs to; null for songs. */
+    val bookKey: String? = null,
+    /** Goes up on every jump in position (a seek, also while paused), so position readers refresh. */
+    val jumps: Int = 0,
 ) {
     val hasMedia: Boolean get() = currentTrackId != null
 }
@@ -79,6 +83,7 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
     private var controller: CompletableDeferred<MediaController>? = null
     private var holders = 0
     private var idleRelease: Job? = null
+    private var jumps = 0
 
     val state: StateFlow<PlayerState> = _state.asStateFlow()
     val queue: StateFlow<QueueState> = _queue.asStateFlow()
@@ -155,9 +160,11 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
                 Player.EVENT_TIMELINE_CHANGED,
                 Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED,
             )
+            if (events.contains(Player.EVENT_POSITION_DISCONTINUITY)) jumps++
             update(player, queueChanged)
         }
     }
+
 
     private fun update(player: Player, queueChanged: Boolean) {
         val item = player.currentMediaItem
@@ -184,6 +191,8 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
             hasPrevious = player.hasPreviousMediaItem(),
             speed = player.playbackParameters.speed,
             pitch = player.playbackParameters.pitch,
+            bookKey = MediaItems.bookKey(item),
+            jumps = jumps,
         )
         if (queueChanged) _queue.value = readQueue(player)
     }
@@ -271,10 +280,10 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
         c.prepare()
     }
 
-    /** Replaces the queue and starts playing at [startIndex]. */
-    fun setQueue(trackIds: List<Long>, startIndex: Int, shuffle: Boolean) = command { c ->
+    /** Replaces the queue and starts playing at [startIndex], [startPositionMs] into it. */
+    fun setQueue(trackIds: List<Long>, startIndex: Int, shuffle: Boolean, startPositionMs: Long = 0) = command { c ->
         if (trackIds.isEmpty()) return@command
-        c.setMediaItems(trackIds.map { MediaItems.request(it) }, startIndex.coerceIn(0, trackIds.lastIndex), 0)
+        c.setMediaItems(trackIds.map { MediaItems.request(it) }, startIndex.coerceIn(0, trackIds.lastIndex), startPositionMs.coerceAtLeast(0))
         c.shuffleModeEnabled = shuffle
         c.prepare()
         c.play()

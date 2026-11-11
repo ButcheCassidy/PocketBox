@@ -19,6 +19,7 @@ enum class LibraryTab(val label: String) {
     ARTISTS("Artists"),
     PLAYLISTS("Playlists"),
     FOLDERS("Folders"),
+    AUDIOBOOKS("Audiobooks"),
 }
 
 enum class AlbumSort(val label: String) {

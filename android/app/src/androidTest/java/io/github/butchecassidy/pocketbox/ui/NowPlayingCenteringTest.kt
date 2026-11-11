@@ -44,7 +44,8 @@ class NowPlayingCenteringTest {
 
     /** Portrait content areas in dp (screen minus status and navigation bars). */
     private val screens = mapOf(
-        "Pixel 8 / 8a" to DpSize(412.dp, 820.dp),
+        "Pixel 6 Pro / 7 Pro" to DpSize(412.dp, 797.dp),
+        "Pixel 6 / 6a / 7 / 7a / 8 / 8a" to DpSize(412.dp, 820.dp),
         "Pixel 9 / 9 Pro / 10 / 10 Pro" to DpSize(412.dp, 830.dp),
         "Pixel 9 Pro XL / 10 Pro XL" to DpSize(448.dp, 900.dp),
     )

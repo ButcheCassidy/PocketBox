@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<resources>
+    <!-- Audiobooks -->
+    <string name="audiobooks_empty_title">No audiobooks yet</string>
+    <string name="audiobooks_empty_body">Mark a folder as an audiobook folder in Settings › Library. Its books show up here, apart from your music.</string>
+    <string name="audiobook_folder">Audiobook folder</string>
+    <string name="mark_audiobook_folder">Use as audiobook folder</string>
+    <string name="audiobook_not_started">Not started</string>
+    <string name="audiobook_finished">Finished</string>
+    <string name="audiobook_left">%1$s left</string>
+    <string name="audiobook_start">Start listening</string>
+    <string name="audiobook_again">Listen again</string>
+    <string name="audiobook_continue">Continue at %1$s</string>
+    <string name="audiobook_start_over">Start over</string>
+    <string name="audiobook_spot">%1$s · %2$s</string>
+    <string name="chapters">Chapters</string>
+    <string name="action_go_to_book">Go to book</string>
+    <string name="bookmarks">Bookmarks</string>
+    <string name="add_bookmark">Add bookmark</string>
+    <string name="bookmark_added">Bookmark saved at %1$s</string>
+    <string name="delete_bookmark">Delete bookmark</string>
+    <string name="back_30">Back 30 seconds</string>
+    <string name="forward_30">Forward 30 seconds</string>
+    <string name="resume_title">Pick up where you left off?</string>
+    <string name="resume_body">%1$s, at %2$s.</string>
+    <string name="resume_continue">Continue</string>
+    <string name="resume_bookmarks">Or jump to a bookmark:</string>
+    <string name="not_now">Not now</string>
+    <plurals name="chapter_count">
+        <item quantity="one">%1$d chapter</item>
+        <item quantity="other">%1$d chapters</item>
+    </plurals>
+
+    <!-- Lyrics timing -->
+    <string name="lyrics_earlier">Show lyrics earlier</string>
+    <string name="lyrics_later">Show lyrics later</string>
+    <string name="lyrics_timing">Timing %1$s s</string>
+    <string name="lyrics_timing_reset">Reset lyrics timing</string>
+</resources>

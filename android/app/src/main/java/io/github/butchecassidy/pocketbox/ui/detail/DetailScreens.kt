@@ -85,7 +85,7 @@ import kotlinx.coroutines.launch
 
 /** The frame every pushed screen shares: the same top bar, back button and margins. */
 @Composable
-private fun DetailScaffold(
+internal fun DetailScaffold(
     title: String,
     actions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
@@ -99,7 +99,7 @@ private fun DetailScaffold(
 
 /** Bottom padding that keeps the last row clear of the mini player. */
 @Composable
-private fun listPadding() = PaddingValues(bottom = LocalChromePadding.current.calculateBottomPadding() + LocalSpacing.current.two)
+internal fun listPadding() = PaddingValues(bottom = LocalChromePadding.current.calculateBottomPadding() + LocalSpacing.current.two)
 
 /** Play / Shuffle buttons used at the top of every song list. */
 @Composable
@@ -440,6 +440,6 @@ private fun facetTitle(type: FacetType) = stringResource(
     },
 )
 
-private const val HEADER_ART_FRACTION = 0.6f
-private val HEADER_ART_MAX = 320.dp
+internal const val HEADER_ART_FRACTION = 0.6f
+internal val HEADER_ART_MAX = 320.dp
 private const val RECENTLY_ADDED_PAGE = 200

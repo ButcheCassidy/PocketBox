@@ -48,7 +48,7 @@ const val NOW_PLAYING_ART_KEY = "now-playing-art"
  */
 @Composable
 fun rememberPositionMs(player: PlayerConnection, state: PlayerState): State<Long> =
-    produceState(player.positionMs(), state.isPlaying, state.currentIndex) {
+    produceState(player.positionMs(), state.isPlaying, state.currentIndex, state.jumps) {
         value = player.positionMs()
         if (state.isPlaying) {
             while (true) withFrameMillis { value = player.positionMs() }

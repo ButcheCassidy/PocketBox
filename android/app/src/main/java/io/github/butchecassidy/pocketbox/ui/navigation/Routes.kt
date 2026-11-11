@@ -21,6 +21,7 @@ object Routes {
     const val EQUALIZER = "equalizer"
     const val LICENSES = "licenses"
     const val HELD_FILES = "held"
+    const val BOOK = "book/{key}"
 
     val topLevel = setOf(LIBRARY, SEARCH, SETTINGS)
 
@@ -31,6 +32,7 @@ object Routes {
     fun shelf(kind: ShelfKind) = "shelf/${kind.name}"
     fun facets(type: FacetType) = "facets/${type.name}"
     fun facet(type: FacetType, value: String) = "facet/${type.name}/${Uri.encode(value)}"
+    fun book(key: String) = "book/${Uri.encode(key)}"
     fun settings(section: SettingsSection) = "settings/${section.name}"
 }
 

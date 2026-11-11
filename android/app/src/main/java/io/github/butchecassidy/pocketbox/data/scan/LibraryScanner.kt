@@ -74,7 +74,7 @@ class LibraryScanner(
 
     /** Granted folders, each flagged if access was lost (revoked, moved or deleted). */
     val roots: Flow<List<LibraryRoot>> = combine(scanDao.folders(), lostFolderIds) { folders, lost ->
-        folders.map { LibraryRoot(it.id, it.treeUri, it.displayName, isAccessible = it.id !in lost) }
+        folders.map { LibraryRoot(it.id, it.treeUri, it.displayName, isAccessible = it.id !in lost, isAudiobooks = it.isAudiobooks) }
     }
 
     val excludedFolders: Flow<List<ExcludedFolderEntity>> = scanDao.allExcludedFolders()
@@ -138,6 +138,14 @@ class LibraryScanner(
         folderAccess.listChildren(tree, parentDocumentId ?: folder.rootDocumentId).orEmpty()
             .filter { it.isDirectory }
             .sortedWith(compareBy(SortKeys.comparator) { it.name })
+    }
+
+    /** Marks a folder as audiobooks (kept apart from the music) or back to music; no rescan needed. */
+    suspend fun setAudiobookFolder(folderId: Long, isAudiobooks: Boolean) = mutex.withLock {
+        withContext(io) {
+            db.withTransaction { scanDao.setAudiobookFolder(folderId, isAudiobooks) }
+            rebuildAlbumsAndArtists()
+        }
     }
 
     /** Re-checks every folder's access without scanning; used at startup and after playback errors. */
@@ -276,6 +284,7 @@ class LibraryScanner(
                     fileSize = child.size,
                     lastModified = child.lastModified,
                     folderArt = art,
+                    isAudiobook = folder.isAudiobooks,
                     lyricsFile = lrc?.let { SidecarFile(folderAccess.documentUri(tree, it.documentId).toString(), it.lastModified) },
                 )
                 count++

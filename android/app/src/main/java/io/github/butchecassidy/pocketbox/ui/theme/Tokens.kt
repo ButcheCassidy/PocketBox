@@ -30,6 +30,7 @@ data class Sizes(
     val gridMinCell: Dp = 156.dp,
     val shelfItem: Dp = 140.dp,
     val artistImage: Dp = 56.dp,
+    val bookCover: Dp = 72.dp,
     val icon: Dp = 24.dp,
     val smallIcon: Dp = 18.dp,
     val letterRailWidth: Dp = 24.dp,

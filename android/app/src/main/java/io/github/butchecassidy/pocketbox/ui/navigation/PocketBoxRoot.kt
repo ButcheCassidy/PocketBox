@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,6 +26,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.WideNavigationRail
 import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.runtime.Composable
@@ -33,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.Saver
@@ -45,12 +48,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import io.github.butchecassidy.pocketbox.R
+import io.github.butchecassidy.pocketbox.domain.model.Audiobook
 import io.github.butchecassidy.pocketbox.playback.QueueEvent
+import io.github.butchecassidy.pocketbox.ui.Format
 import io.github.butchecassidy.pocketbox.ui.LocalAppContainer
 import io.github.butchecassidy.pocketbox.ui.LocalChromePadding
 import io.github.butchecassidy.pocketbox.ui.components.ActionsHost
@@ -62,6 +68,8 @@ import io.github.butchecassidy.pocketbox.ui.nowplaying.MiniPlayer
 import io.github.butchecassidy.pocketbox.ui.nowplaying.NowPlayingScreen
 import io.github.butchecassidy.pocketbox.ui.settings.HeldFilesNotice
 import io.github.butchecassidy.pocketbox.ui.support.DonationReminderHost
+import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** Moves between screens; one instance, available everywhere. */
@@ -228,12 +236,63 @@ fun PocketBoxRoot(startDestination: String, openNowPlayingRequest: Boolean, onNo
             state = actions,
             onOpenAlbum = { nowPlaying.expanded = false; navigator.go(Routes.album(it)) },
             onOpenArtist = { nowPlaying.expanded = false; navigator.go(Routes.artist(it)) },
+            onOpenBook = { nowPlaying.expanded = false; navigator.go(Routes.book(it)) },
         )
         ClearQueueDialog()
+        if (showChrome) ResumeBookPrompt()
         if (showChrome && !nowPlaying.expanded) HeldFilesNotice()
         if (route == Routes.LIBRARY && !nowPlaying.expanded) DonationReminderHost()
     }
 }
+
+/**
+ * When the app opens with an audiobook paused part-way (and nothing playing): "Pick up where you left
+ * off?" with Continue, or a jump to one of the latest bookmarks. Asked once per launch.
+ */
+@Composable
+private fun ResumeBookPrompt() {
+    val container = LocalAppContainer.current
+    var asked by rememberSaveable { mutableStateOf(false) }
+    if (asked) return
+    val player by container.player.state.collectAsStateWithLifecycle()
+    val book by produceState<Audiobook?>(null) {
+        val track = container.queueStore.savedCurrentTrack()?.takeIf { it.isAudiobook }
+        value = track?.let { container.books.book(it.albumKey).first() }?.takeIf { it.progressChapter >= 0 && !it.isFinished }
+        if (value == null) asked = true
+    }
+    LaunchedEffect(player.playWhenReady) { if (player.playWhenReady) asked = true }
+    val current = book ?: return
+    val bookmarks by remember(current.key) { container.books.bookmarks(current.key) }.collectAsStateWithLifecycle(emptyList())
+    val ids = current.chapters.map { it.id }
+    val playAt = { trackId: Long, positionMs: Long ->
+        asked = true
+        ids.indexOf(trackId).takeIf { it >= 0 }?.let { container.queue.playBook(ids, it, positionMs) }
+    }
+    PocketDialog(
+        title = stringResource(R.string.resume_title),
+        onDismissRequest = { asked = true },
+        confirmLabel = stringResource(R.string.resume_continue),
+        onConfirm = { current.progress?.let { playAt(it.trackId, it.positionMs) } },
+        dismissLabel = stringResource(R.string.not_now),
+    ) {
+        Text(stringResource(R.string.resume_body, current.title, Format.duration(current.listenedMs)), style = MaterialTheme.typography.bodyMedium)
+        if (bookmarks.isNotEmpty()) {
+            Text(
+                stringResource(R.string.resume_bookmarks),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = LocalSpacing.current.one),
+            )
+            bookmarks.take(RESUME_BOOKMARKS).forEach { bookmark ->
+                val chapter = current.chapters.firstOrNull { it.id == bookmark.trackId }?.title.orEmpty()
+                TextButton(onClick = { playAt(bookmark.trackId, bookmark.positionMs) }) {
+                    Text(stringResource(R.string.audiobook_spot, chapter, Format.duration(bookmark.positionMs)), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+    }
+}
+
+private const val RESUME_BOOKMARKS = 3
 
 /** "Clear queue?" — shown when tapping a song would throw away songs the user queued by hand. */
 @Composable

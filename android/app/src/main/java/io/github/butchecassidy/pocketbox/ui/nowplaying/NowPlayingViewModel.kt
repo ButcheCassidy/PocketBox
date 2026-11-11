@@ -47,6 +47,11 @@ class NowPlayingViewModel(private val container: AppContainer) : ViewModel() {
         }
         .stateIn(viewModelScope, started, LyricsState.Loading)
 
+    /** The current song's lyrics timing fix (positive: lyrics earlier). */
+    val lyricOffset: StateFlow<Long> = trackId
+        .flatMapLatest { id -> if (id == null) flowOf(0L) else container.lyrics.offset(id) }
+        .stateIn(viewModelScope, started, 0L)
+
     val isFavorite: StateFlow<Boolean> = combine(trackId, container.library.favoriteIds) { id, favorites -> id != null && id in favorites }
         .stateIn(viewModelScope, started, false)
 
@@ -58,6 +63,23 @@ class NowPlayingViewModel(private val container: AppContainer) : ViewModel() {
         val id = track.value?.id ?: return
         val favorite = isFavorite.value
         viewModelScope.launch { container.library.setFavorite(id, !favorite) }
+    }
+
+    fun nudgeLyrics(deltaMs: Long) {
+        val id = track.value?.id ?: return
+        container.appScope.launch { container.lyrics.adjustOffset(id, deltaMs) }
+    }
+
+    fun resetLyricsTiming() {
+        val id = track.value?.id ?: return
+        container.appScope.launch { container.lyrics.adjustOffset(id, 0, reset = true) }
+    }
+
+    /** Saves the playing chapter's spot as a bookmark; returns false when a song (not a book) plays. */
+    fun addBookmark(positionMs: Long): Boolean {
+        val current = track.value?.takeIf { it.isAudiobook } ?: return false
+        container.appScope.launch { container.books.addBookmark(current.albumKey, current.id, positionMs) }
+        return true
     }
 
     fun saveQueueAsPlaylist(name: String) {

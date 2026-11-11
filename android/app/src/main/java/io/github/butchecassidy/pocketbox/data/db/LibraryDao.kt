@@ -5,41 +5,44 @@ import androidx.room.Dao
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
-/** Read-only library queries for screens, search and the media browser. Hidden (too short) songs never appear. */
+/**
+ * Read-only library queries for screens, search and the media browser. Hidden (too short) songs never
+ * appear, and audiobook chapters only appear in the audiobook queries at the end.
+ */
 @Dao
 interface LibraryDao {
     // ---- Songs ----
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 ORDER BY titleSortKey, title")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 ORDER BY titleSortKey, title")
     fun songsByTitle(): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 ORDER BY albumArtistSortKey, titleSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 ORDER BY albumArtistSortKey, titleSortKey")
     fun songsByArtist(): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 ORDER BY dateAdded DESC, titleSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 ORDER BY dateAdded DESC, titleSortKey")
     fun songsByDateAdded(): Flow<List<TrackRow>>
 
     @Query(
-        "SELECT $TRACK_COLUMNS FROM tracks WHERE albumKey = :albumKey AND isHidden = 0 " +
+        "SELECT $TRACK_COLUMNS FROM tracks WHERE albumKey = :albumKey AND isHidden = 0 AND isAudiobook = 0 " +
             "ORDER BY COALESCE(discNumber, 1), trackNumber IS NULL, trackNumber, fileNameSortKey",
     )
     fun albumTracks(albumKey: String): Flow<List<TrackRow>>
 
     @Query(
-        "SELECT $TRACK_COLUMNS FROM tracks WHERE artistKey = :artistKey AND isHidden = 0 ORDER BY titleSortKey, title",
+        "SELECT $TRACK_COLUMNS FROM tracks WHERE artistKey = :artistKey AND isHidden = 0 AND isAudiobook = 0 ORDER BY titleSortKey, title",
     )
     fun artistTracks(artistKey: String): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE parentUri = :parentUri AND isHidden = 0 ORDER BY fileNameSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE parentUri = :parentUri AND isHidden = 0 AND isAudiobook = 0 ORDER BY fileNameSortKey")
     fun folderTracks(parentUri: String): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE genre = :genre AND isHidden = 0 ORDER BY titleSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE genre = :genre AND isHidden = 0 AND isAudiobook = 0 ORDER BY titleSortKey")
     fun genreTracks(genre: String): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE year = :year AND isHidden = 0 ORDER BY titleSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE year = :year AND isHidden = 0 AND isAudiobook = 0 ORDER BY titleSortKey")
     fun yearTracks(year: Int): Flow<List<TrackRow>>
 
-    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE composer = :composer AND isHidden = 0 ORDER BY titleSortKey")
+    @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE composer = :composer AND isHidden = 0 AND isAudiobook = 0 ORDER BY titleSortKey")
     fun composerTracks(composer: String): Flow<List<TrackRow>>
 
     @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE id IN (:ids)")
@@ -61,19 +64,19 @@ interface LibraryDao {
 
     @Query(
         "SELECT $TRACK_COLUMNS FROM tracks JOIN tracks_fts ON tracks.id = tracks_fts.rowid " +
-            "WHERE tracks_fts MATCH :match AND tracks.isHidden = 0 LIMIT :limit",
+            "WHERE tracks_fts MATCH :match AND tracks.isHidden = 0 AND tracks.isAudiobook = 0 LIMIT :limit",
     )
     suspend fun search(match: String, limit: Int): List<TrackRow>
 
     /** Distinct names for typo-tolerant matching, small enough to keep in memory. */
     @Query(
-        "SELECT title FROM tracks WHERE isHidden = 0 UNION SELECT albumArtist FROM tracks WHERE isHidden = 0 " +
-            "UNION SELECT artist FROM tracks WHERE isHidden = 0 UNION SELECT album FROM tracks WHERE isHidden = 0",
+        "SELECT title FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 UNION SELECT albumArtist FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 " +
+            "UNION SELECT artist FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 UNION SELECT album FROM tracks WHERE isHidden = 0 AND isAudiobook = 0",
     )
     suspend fun distinctNames(): List<String>
 
     @Query(
-        "SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 AND (title IN (:names) OR artist IN (:names) " +
+        "SELECT $TRACK_COLUMNS FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 AND (title IN (:names) OR artist IN (:names) " +
             "OR albumArtist IN (:names) OR album IN (:names)) LIMIT :limit",
     )
     suspend fun tracksMatchingNames(names: List<String>, limit: Int): List<TrackRow>
@@ -165,25 +168,25 @@ interface LibraryDao {
     // ---- Folders and facets ----
 
     @Query(
-        "SELECT parentUri, folderPath, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 " +
+        "SELECT parentUri, folderPath, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 " +
             "GROUP BY parentUri ORDER BY folderPath COLLATE NOCASE",
     )
     fun folders(): Flow<List<FolderRow>>
 
     @Query(
-        "SELECT genre AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND genre IS NOT NULL " +
+        "SELECT genre AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 AND genre IS NOT NULL " +
             "GROUP BY genre ORDER BY genre COLLATE NOCASE",
     )
     fun genres(): Flow<List<FacetRow>>
 
     @Query(
-        "SELECT CAST(year AS TEXT) AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 " +
+        "SELECT CAST(year AS TEXT) AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 " +
             "AND year IS NOT NULL GROUP BY year ORDER BY year DESC",
     )
     fun years(): Flow<List<FacetRow>>
 
     @Query(
-        "SELECT composer AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND composer IS NOT NULL " +
+        "SELECT composer AS value, COUNT(*) AS trackCount FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 AND composer IS NOT NULL " +
             "GROUP BY composer ORDER BY composer COLLATE NOCASE",
     )
     fun composers(): Flow<List<FacetRow>>

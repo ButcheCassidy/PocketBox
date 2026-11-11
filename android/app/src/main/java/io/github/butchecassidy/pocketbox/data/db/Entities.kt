@@ -19,6 +19,8 @@ data class FolderEntity(
     val rootDocumentId: String,
     val displayName: String,
     val addedAt: Long,
+    /** Everything inside is an audiobook: kept apart from the music in its own section. */
+    @ColumnInfo(defaultValue = "0") val isAudiobooks: Boolean = false,
 )
 
 /**
@@ -121,6 +123,8 @@ data class TrackEntity(
     val titleLetter: String,
     val isHidden: Boolean,
     val dateAdded: Long,
+    /** A chapter of an audiobook (its folder is marked as an audiobook folder), not a song. */
+    @ColumnInfo(defaultValue = "0") val isAudiobook: Boolean = false,
 )
 
 /** Full-text index over the searchable text of [TrackEntity]; accents are folded (é matches e). */
@@ -259,4 +263,41 @@ data class EqPresetEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val bandsDb: String,
+)
+
+/** The user's lyrics timing fix for one song: positive shows the lyrics earlier. */
+@Entity(
+    tableName = "lyric_offsets",
+    foreignKeys = [ForeignKey(TrackEntity::class, ["id"], ["trackId"], onDelete = ForeignKey.CASCADE)],
+)
+data class LyricOffsetEntity(
+    @PrimaryKey val trackId: Long,
+    val offsetMs: Long,
+)
+
+/** Where listening stopped in one audiobook ([bookKey] is its album key); saved automatically. */
+@Entity(
+    tableName = "book_progress",
+    foreignKeys = [ForeignKey(TrackEntity::class, ["id"], ["trackId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("trackId")],
+)
+data class BookProgressEntity(
+    @PrimaryKey val bookKey: String,
+    val trackId: Long,
+    val positionMs: Long,
+    val updatedAt: Long,
+)
+
+/** A spot in an audiobook the user saved to come back to. */
+@Entity(
+    tableName = "bookmarks",
+    foreignKeys = [ForeignKey(TrackEntity::class, ["id"], ["trackId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("bookKey"), Index("trackId")],
+)
+data class BookmarkEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val bookKey: String,
+    val trackId: Long,
+    val positionMs: Long,
+    val createdAt: Long,
 )

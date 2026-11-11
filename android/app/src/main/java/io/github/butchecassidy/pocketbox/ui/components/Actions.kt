@@ -70,8 +70,8 @@ val LocalShowMessage = staticCompositionLocalOf<(String) -> Unit> { {} }
 
 /** Hosts the song menu, release menu, track info and add-to-playlist, for every screen. */
 @Composable
-fun ActionsHost(state: ActionsState, onOpenAlbum: (String) -> Unit, onOpenArtist: (String) -> Unit) {
-    state.song?.let { track -> SongActionsSheet(track, state, onOpenAlbum, onOpenArtist) }
+fun ActionsHost(state: ActionsState, onOpenAlbum: (String) -> Unit, onOpenArtist: (String) -> Unit, onOpenBook: (String) -> Unit) {
+    state.song?.let { track -> SongActionsSheet(track, state, if (track.isAudiobook) onOpenBook else onOpenAlbum, onOpenArtist) }
     state.release?.let { album -> ReleaseActionsSheet(album, state, onOpenArtist) }
     state.info?.let { track -> TrackInfoSheet(track) { state.info = null } }
     state.addToPlaylist?.let { ids -> AddToPlaylistDialog(ids) { state.addToPlaylist = null } }
@@ -116,14 +116,19 @@ private fun SongActionsSheet(track: Track, state: ActionsState, onOpenAlbum: (St
         ActionItem(R.drawable.ic_playlist_play, stringResource(R.string.action_add_to_playlist)) {
             state.addToPlaylist = listOf(track.id); close()
         }
-        ActionItem(
-            if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite,
-            stringResource(if (isFavorite) R.string.action_unfavorite else R.string.action_favorite),
-        ) {
-            container.appScope.launch { container.library.setFavorite(track.id, !isFavorite) }; close()
+        // Audiobook chapters live in their book, not among favourites, albums or artists.
+        if (track.isAudiobook) {
+            ActionItem(R.drawable.ic_auto_stories, stringResource(R.string.action_go_to_book)) { close(); onOpenAlbum(track.albumKey) }
+        } else {
+            ActionItem(
+                if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite,
+                stringResource(if (isFavorite) R.string.action_unfavorite else R.string.action_favorite),
+            ) {
+                container.appScope.launch { container.library.setFavorite(track.id, !isFavorite) }; close()
+            }
+            ActionItem(R.drawable.ic_album, stringResource(R.string.action_go_to_album)) { close(); onOpenAlbum(track.albumKey) }
+            ActionItem(R.drawable.ic_person, stringResource(R.string.action_go_to_artist)) { close(); onOpenArtist(track.artistKey) }
         }
-        ActionItem(R.drawable.ic_album, stringResource(R.string.action_go_to_album)) { close(); onOpenAlbum(track.albumKey) }
-        ActionItem(R.drawable.ic_person, stringResource(R.string.action_go_to_artist)) { close(); onOpenArtist(track.artistKey) }
         ActionItem(R.drawable.ic_info, stringResource(R.string.action_track_info)) { state.info = track; close() }
     }
 }

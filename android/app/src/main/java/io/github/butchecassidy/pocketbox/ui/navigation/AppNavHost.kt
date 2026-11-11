@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import io.github.butchecassidy.pocketbox.ui.detail.AlbumScreen
 import io.github.butchecassidy.pocketbox.ui.detail.ArtistScreen
+import io.github.butchecassidy.pocketbox.ui.detail.BookScreen
 import io.github.butchecassidy.pocketbox.ui.detail.FacetScreen
 import io.github.butchecassidy.pocketbox.ui.detail.FacetsScreen
 import io.github.butchecassidy.pocketbox.ui.detail.FavoritesScreen
@@ -61,5 +62,6 @@ fun AppNavHost(navController: NavHostController, startDestination: String) {
         composable(Routes.EQUALIZER) { EqualizerScreen() }
         composable(Routes.LICENSES) { LicensesScreen() }
         composable(Routes.HELD_FILES) { HeldFilesScreen() }
+        composable(Routes.BOOK) { entry -> BookScreen(entry.arg("key")) }
     }
 }

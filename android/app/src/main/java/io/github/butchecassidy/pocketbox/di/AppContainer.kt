@@ -6,6 +6,7 @@ import io.github.butchecassidy.pocketbox.data.art.ArtworkRepository
 import io.github.butchecassidy.pocketbox.data.db.PocketBoxDatabase
 import io.github.butchecassidy.pocketbox.data.lyrics.LyricsRepository
 import io.github.butchecassidy.pocketbox.data.prefs.SettingsRepository
+import io.github.butchecassidy.pocketbox.data.repo.BookRepository
 import io.github.butchecassidy.pocketbox.data.repo.EqPresetRepository
 import io.github.butchecassidy.pocketbox.data.repo.HistoryRepository
 import io.github.butchecassidy.pocketbox.data.repo.LibraryRepository
@@ -46,7 +47,8 @@ class AppContainer(context: Context) {
     val audioFiles by lazy { AudioFiles(appContext) }
     val scanner by lazy { LibraryScanner(database, folderAccess, audioFiles, settings, io) }
     val artwork by lazy { ArtworkRepository(appContext, audioFiles, io, appScope) }
-    val lyrics by lazy { LyricsRepository(audioFiles, io) }
+    val lyrics by lazy { LyricsRepository(audioFiles, database.userDataDao(), io) }
+    val books by lazy { BookRepository(database.bookDao(), cpu, io) }
     val library by lazy { LibraryRepository(database, cpu) }
     val history by lazy { HistoryRepository(database, settings, io) }
     val playlists by lazy { PlaylistRepository(appContext, database, audioFiles, io) }

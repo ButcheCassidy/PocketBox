@@ -11,6 +11,24 @@ import kotlinx.coroutines.flow.Flow
 /** Everything the user creates: playlists, favourites, history, recent searches and release overrides. */
 @Dao
 interface UserDataDao {
+    // ---- Lyrics timing ----
+
+    @Query("SELECT offsetMs FROM lyric_offsets WHERE trackId = :trackId")
+    fun lyricOffset(trackId: Long): Flow<Long?>
+
+    @Query("SELECT offsetMs FROM lyric_offsets WHERE trackId = :trackId")
+    suspend fun lyricOffsetOnce(trackId: Long): Long?
+
+    /** Saves a song's lyrics timing; skipped if the song left the library meanwhile. */
+    @Query(
+        "INSERT OR REPLACE INTO lyric_offsets (trackId, offsetMs) " +
+            "SELECT :trackId, :offsetMs WHERE EXISTS (SELECT 1 FROM tracks WHERE id = :trackId)",
+    )
+    suspend fun setLyricOffset(trackId: Long, offsetMs: Long)
+
+    @Query("DELETE FROM lyric_offsets WHERE trackId = :trackId")
+    suspend fun clearLyricOffset(trackId: Long)
+
     // ---- Playlists ----
 
     @Query(
@@ -87,7 +105,7 @@ interface UserDataDao {
 
     @Query(
         "SELECT $TRACK_COLUMNS FROM favorites f JOIN tracks ON tracks.id = f.trackId " +
-            "WHERE tracks.isHidden = 0 ORDER BY f.addedAt DESC",
+            "WHERE tracks.isHidden = 0 AND tracks.isAudiobook = 0 ORDER BY f.addedAt DESC",
     )
     fun favoriteTracks(): Flow<List<TrackRow>>
 
@@ -110,13 +128,13 @@ interface UserDataDao {
 
     @Query(
         "SELECT $TRACK_COLUMNS FROM play_stats s JOIN tracks ON tracks.id = s.trackId " +
-            "WHERE tracks.isHidden = 0 ORDER BY s.lastPlayedAt DESC LIMIT :limit",
+            "WHERE tracks.isHidden = 0 AND tracks.isAudiobook = 0 ORDER BY s.lastPlayedAt DESC LIMIT :limit",
     )
     fun recentlyPlayedTracks(limit: Int): Flow<List<TrackRow>>
 
     @Query(
         "SELECT $TRACK_COLUMNS FROM play_stats s JOIN tracks ON tracks.id = s.trackId " +
-            "WHERE tracks.isHidden = 0 ORDER BY s.playCount DESC, s.lastPlayedAt DESC LIMIT :limit",
+            "WHERE tracks.isHidden = 0 AND tracks.isAudiobook = 0 ORDER BY s.playCount DESC, s.lastPlayedAt DESC LIMIT :limit",
     )
     fun mostPlayedTracks(limit: Int): Flow<List<TrackRow>>
 

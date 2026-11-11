@@ -132,11 +132,19 @@ fun QueueSheet(onDismiss: () -> Unit, onSaveAsPlaylist: (String) -> Unit) {
     }
 }
 
-/** Full-height lyrics with larger text; tap a line to jump there. */
+/** Full-height lyrics with larger text; tap a line to jump there, nudge the timing at the bottom. */
 @Composable
-fun LyricsSheet(lyrics: LyricsState, positionMs: Long, onSeek: (Long) -> Unit, onDismiss: () -> Unit) {
+fun LyricsSheet(
+    lyrics: LyricsState,
+    positionMs: Long,
+    onSeek: (Long) -> Unit,
+    offsetMs: Long,
+    onNudge: (Long) -> Unit,
+    onResetTiming: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     PocketSheet(onDismiss = onDismiss, fullHeight = true) {
-        LyricsView(lyrics, positionMs, onSeek, large = true, modifier = Modifier.fillMaxHeight())
+        LyricsView(lyrics, positionMs, onSeek, large = true, modifier = Modifier.fillMaxHeight(), offsetMs, onNudge, onResetTiming)
     }
 }
 

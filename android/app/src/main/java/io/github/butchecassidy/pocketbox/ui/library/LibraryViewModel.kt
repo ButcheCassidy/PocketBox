@@ -10,6 +10,7 @@ import io.github.butchecassidy.pocketbox.di.AppContainer
 import io.github.butchecassidy.pocketbox.domain.model.Album
 import io.github.butchecassidy.pocketbox.domain.model.AlbumSort
 import io.github.butchecassidy.pocketbox.domain.model.Artist
+import io.github.butchecassidy.pocketbox.domain.model.Audiobook
 import io.github.butchecassidy.pocketbox.domain.model.LibraryRoot
 import io.github.butchecassidy.pocketbox.domain.model.LibraryTab
 import io.github.butchecassidy.pocketbox.domain.model.MusicFolder
@@ -67,6 +68,7 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     val artists: StateFlow<ImmutableList<Artist>> = library.artists.immutable()
     val playlists: StateFlow<ImmutableList<Playlist>> = container.playlists.playlists.immutable()
     val folders: StateFlow<ImmutableList<MusicFolder>> = library.folders.immutable()
+    val books: StateFlow<ImmutableList<Audiobook>> = container.books.books.immutable()
 
     val recentlyPlayed = settingsFlow.map { it.showRecentlyPlayed }.distinctUntilChanged()
         .flatMapLatest { if (it) library.recentlyPlayed() else flowOf(emptyList()) }.immutable()
@@ -80,9 +82,15 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     val lostRoots: StateFlow<ImmutableList<LibraryRoot>> =
         container.scanner.roots.map { roots -> roots.filterNot { it.isAccessible } }.immutable()
 
+    /** The tabs to show: the user's choice, with Audiobooks only once a folder is marked for them. */
+    val tabs: StateFlow<ImmutableList<LibraryTab>?> = combine(settingsFlow, container.scanner.roots) { s, roots ->
+        val hasBooks = roots.any { it.isAudiobooks }
+        s.visibleTabs.filter { it != LibraryTab.AUDIOBOOKS || hasBooks }.ifEmpty { listOf(LibraryTab.SONGS) }.toImmutableList()
+    }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     /** The tab to reopen on: the last one used, or Albums on the very first launch. */
-    val initialTab: StateFlow<LibraryTab?> = combine(container.settings.lastTab, settingsFlow) { last, s ->
-        last?.takeIf { it in s.visibleTabs } ?: s.visibleTabs.firstOrNull { it == LibraryTab.ALBUMS } ?: s.visibleTabs.first()
+    val initialTab: StateFlow<LibraryTab?> = combine(container.settings.lastTab, tabs) { last, visible ->
+        if (visible == null) null else last?.takeIf { it in visible } ?: visible.firstOrNull { it == LibraryTab.ALBUMS } ?: visible.first()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun onTabSelected(tab: LibraryTab) {

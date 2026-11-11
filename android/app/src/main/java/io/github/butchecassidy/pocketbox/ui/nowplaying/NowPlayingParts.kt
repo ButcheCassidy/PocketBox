@@ -41,6 +41,7 @@ import androidx.compose.material3.ButtonGroup
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.IconToggleButtonShapes
@@ -50,6 +51,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,8 +71,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -84,13 +92,14 @@ import io.github.butchecassidy.pocketbox.domain.model.Track
 import io.github.butchecassidy.pocketbox.playback.OutputInfo
 import io.github.butchecassidy.pocketbox.ui.Format
 import io.github.butchecassidy.pocketbox.ui.components.ArtImage
+import io.github.butchecassidy.pocketbox.ui.components.PocketIconButton
 import io.github.butchecassidy.pocketbox.ui.components.QualityBadge
 import io.github.butchecassidy.pocketbox.ui.rememberHaptic
 import io.github.butchecassidy.pocketbox.ui.theme.LocalReduceMotion
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
-import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /** Test tags for the centring test: art, progress bar and play button share one centre line. */
 object NowPlayingTags {
@@ -397,6 +406,28 @@ fun SecondaryControls(
     }
 }
 
+/** For audiobooks: back 30 s · bookmark · lyrics · queue · forward 30 s, on the same centre line. */
+@Composable
+fun BookControls(onBack: () -> Unit, onBookmark: () -> Unit, onLyrics: () -> Unit, onQueue: () -> Unit, onForward: () -> Unit, width: Dp) {
+    Row(Modifier.width(width), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onBack, shapes = IconButtonDefaults.shapes()) {
+            Icon(painterResource(R.drawable.ic_replay_30), stringResource(R.string.back_30))
+        }
+        IconButton(onClick = onBookmark, shapes = IconButtonDefaults.shapes()) {
+            Icon(painterResource(R.drawable.ic_bookmark_add), stringResource(R.string.add_bookmark))
+        }
+        FilledTonalIconButton(onClick = onLyrics, shapes = IconButtonDefaults.shapes()) {
+            Icon(painterResource(R.drawable.ic_lyrics), stringResource(R.string.lyrics))
+        }
+        FilledTonalIconButton(onClick = onQueue, shapes = IconButtonDefaults.shapes()) {
+            Icon(painterResource(R.drawable.ic_queue_music), stringResource(R.string.queue))
+        }
+        IconButton(onClick = onForward, shapes = IconButtonDefaults.shapes()) {
+            Icon(painterResource(R.drawable.ic_forward_30), stringResource(R.string.forward_30))
+        }
+    }
+}
+
 /** Compact source + output chips; tap for the full quality sheet. */
 @Composable
 fun QualityChips(track: Track?, output: OutputInfo, onClick: () -> Unit) {
@@ -417,11 +448,22 @@ fun QualityChips(track: Track?, output: OutputInfo, onClick: () -> Unit) {
 }
 
 /**
- * Lyrics, synced or plain. Synced lines scroll smoothly with the current one highlighted; tapping a
- * line seeks there. With no lyrics, a friendly note explains where they come from.
+ * Lyrics, synced or plain. Synced lines scroll smoothly with the current one highlighted, word by word
+ * when the file times each word; tapping a line seeks there. [offsetMs] is the user's timing fix
+ * (positive shows lyrics earlier); with [onNudge] the timing controls show below synced lyrics.
+ * With no lyrics, a friendly note explains where they come from.
  */
 @Composable
-fun LyricsView(state: LyricsState, positionMs: Long, onSeek: (Long) -> Unit, large: Boolean, modifier: Modifier = Modifier) {
+fun LyricsView(
+    state: LyricsState,
+    positionMs: Long,
+    onSeek: (Long) -> Unit,
+    large: Boolean,
+    modifier: Modifier = Modifier,
+    offsetMs: Long = 0,
+    onNudge: ((Long) -> Unit)? = null,
+    onResetTiming: () -> Unit = {},
+) {
     val spacing = LocalSpacing.current
     val style = if (large) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleMedium
     when (state) {
@@ -447,8 +489,10 @@ fun LyricsView(state: LyricsState, positionMs: Long, onSeek: (Long) -> Unit, lar
                 textAlign = TextAlign.Center,
                 modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(spacing.two),
             )
-            is Lyrics.Synced -> {
-                val current = lyrics.indexAt(positionMs)
+            is Lyrics.Synced -> Column(modifier.fillMaxSize()) {
+                // Where the lyrics are "at": the song's position moved by the user's timing fix.
+                val lyricsMs = positionMs + offsetMs
+                val current = lyrics.indexAt(lyricsMs)
                 val list = rememberLazyListState()
                 val reduceMotion = LocalReduceMotion.current
                 LaunchedEffect(current) {
@@ -457,21 +501,51 @@ fun LyricsView(state: LyricsState, positionMs: Long, onSeek: (Long) -> Unit, lar
                         if (reduceMotion) list.scrollToItem(target) else list.animateScrollToItem(target)
                     }
                 }
-                LazyColumn(modifier.fillMaxSize(), state = list, horizontalAlignment = Alignment.CenterHorizontally) {
+                val colors = MaterialTheme.colorScheme
+                LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, horizontalAlignment = Alignment.CenterHorizontally) {
                     itemsIndexed(lyrics.lines) { index, line ->
                         val active = index == current
+                        val text = if (active && line.words.isNotEmpty()) {
+                            val sung = line.wordsSungAt(lyricsMs)
+                            buildAnnotatedString {
+                                line.words.forEachIndexed { i, word ->
+                                    withStyle(SpanStyle(color = if (i < sung) colors.primary else colors.onSurfaceVariant)) { append(word.text) }
+                                }
+                            }
+                        } else {
+                            AnnotatedString(line.text.ifEmpty { "♪" })
+                        }
                         Text(
-                            line.text.ifEmpty { "♪" },
+                            text,
                             style = style,
                             fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
-                            color = if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = if (active) colors.primary else colors.onSurfaceVariant,
                             textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().clickable { onSeek(line.timeMs) }.padding(vertical = spacing.one, horizontal = spacing.two),
+                            modifier = Modifier.fillMaxWidth().clickable { onSeek(line.timeMs - offsetMs) }
+                                .padding(vertical = spacing.one, horizontal = spacing.two),
                         )
                     }
                 }
+                if (onNudge != null) LyricsTiming(offsetMs, onNudge, onResetTiming)
             }
         }
+    }
+}
+
+/** Show lyrics earlier / later in small steps, with the current fix in between (tap it to reset). */
+@Composable
+private fun LyricsTiming(offsetMs: Long, onNudge: (Long) -> Unit, onReset: () -> Unit) {
+    val resetLabel = stringResource(R.string.lyrics_timing_reset)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        PocketIconButton(R.drawable.ic_keyboard_arrow_up, stringResource(R.string.lyrics_earlier), { onNudge(LYRIC_NUDGE_MS) })
+        TextButton(
+            onClick = onReset,
+            enabled = offsetMs != 0L,
+            modifier = Modifier.semantics { onClick(label = resetLabel) { onReset(); true } },
+        ) {
+            Text(stringResource(R.string.lyrics_timing, String.format(Locale.ROOT, "%+.2f", offsetMs / 1000.0)))
+        }
+        PocketIconButton(R.drawable.ic_keyboard_arrow_down, stringResource(R.string.lyrics_later), { onNudge(-LYRIC_NUDGE_MS) })
     }
 }
 
@@ -508,6 +582,7 @@ private const val PRESSED_CORNER_PERCENT = 20
 private const val PLAYING_CORNER_PERCENT = 30
 private const val TOGGLE_ON_CORNER_PERCENT = 30
 private const val LYRIC_CONTEXT_LINES = 2
+private const val LYRIC_NUDGE_MS = 250L
 private const val SCRIM_ALPHA = 0.72f
 private val BLUR_SOURCE_SIZE = 96.dp
 private val BLUR_RADIUS = 48.dp

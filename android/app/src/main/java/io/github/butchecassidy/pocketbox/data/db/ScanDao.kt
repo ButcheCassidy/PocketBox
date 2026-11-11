@@ -39,6 +39,17 @@ interface ScanDao {
     @Insert
     suspend fun insertFolder(folder: FolderEntity): Long
 
+    @Query("UPDATE folders SET isAudiobooks = :isAudiobooks WHERE id = :folderId")
+    suspend fun markAudiobookFolder(folderId: Long, isAudiobooks: Boolean)
+
+    @Query("UPDATE tracks SET isAudiobook = :isAudiobooks WHERE folderId = :folderId")
+    suspend fun markAudiobookTracks(folderId: Long, isAudiobooks: Boolean)
+
+    suspend fun setAudiobookFolder(folderId: Long, isAudiobooks: Boolean) {
+        markAudiobookFolder(folderId, isAudiobooks)
+        markAudiobookTracks(folderId, isAudiobooks)
+    }
+
     @Query("DELETE FROM folders WHERE id = :folderId")
     suspend fun deleteFolder(folderId: Long)
 
@@ -92,12 +103,12 @@ interface ScanDao {
             "MIN(albumSortTag) AS albumSortTag, MIN(albumArtistSortTag) AS albumArtistSortTag, MIN(year) AS year, " +
             "COUNT(*) AS trackCount, COUNT(DISTINCT COALESCE(discNumber, 1)) AS discCount, " +
             "SUM(durationMs) AS durationMs, MAX(qualityClass) AS bestQuality, MAX(releaseTypeTag) AS releaseTypeTag, " +
-            "MIN(dateAdded) AS dateAdded FROM tracks WHERE isHidden = 0 GROUP BY albumKey",
+            "MIN(dateAdded) AS dateAdded FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 GROUP BY albumKey",
     )
     suspend fun albumAggregates(): List<AlbumAggregate>
 
     @Query(
-        "SELECT albumKey, artUri, artSource, artVersion FROM tracks WHERE isHidden = 0 AND artUri IS NOT NULL " +
+        "SELECT albumKey, artUri, artSource, artVersion FROM tracks WHERE isHidden = 0 AND isAudiobook = 0 AND artUri IS NOT NULL " +
             "ORDER BY albumKey, COALESCE(discNumber, 1), trackNumber IS NULL, trackNumber, fileNameSortKey",
     )
     suspend fun albumArtRows(): List<AlbumArtRow>

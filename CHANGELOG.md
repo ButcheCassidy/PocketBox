@@ -2,6 +2,18 @@
 
 All notable changes to Pocket Box are listed here. Versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-11-11
+
+Installs over 1.0.0 and keeps your library, playlists, history and settings.
+
+### Added
+- Audiobooks: mark a folder as an audiobook folder and its books move into their own Audiobooks tab, apart from your music. Progress is saved automatically, bookmarks save an exact spot, and on return the app offers to continue or jump to a bookmark. Back/forward 30 seconds; chapters play in order without shuffle or crossfade.
+- Word-by-word synced lyrics for "enhanced" `.lrc` files, and a per-song lyrics timing adjustment.
+- Support for the Pixel 6, 6 Pro, 6a, 7, 7 Pro and 7a.
+
+### Fixed
+- Seeking while paused now moves the time, progress bar and lyrics straight away instead of when playback resumes.
+
 ## [1.0.0] - 2026-11-11
 
 The first stable release. It installs over 1.0.0-beta.1 and keeps your library, playlists and settings.

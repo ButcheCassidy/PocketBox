@@ -61,6 +61,7 @@ class PlaybackService : MediaLibraryService() {
     private lateinit var sleepTimer: SleepTimer
     private lateinit var crossfader: Crossfader
     private lateinit var playCounter: PlayCountTracker
+    private lateinit var bookProgress: BookProgressTracker
     private lateinit var effects: AudioEffectsController
     private lateinit var widgetPublisher: WidgetStatePublisher
     private val mixer = VolumeMixer { volume -> if (::exo.isInitialized) exo.volume = volume }
@@ -78,8 +79,11 @@ class PlaybackService : MediaLibraryService() {
         browseTree = LibraryBrowseTree(container.library, container.playlists, container.history)
         exo = createPlayer(bitPerfect = false)
         sleepTimer = SleepTimer({ exo }, mixer, scope)
-        crossfader = Crossfader(this, { exo }, mixer, { if (settings.bitPerfect) 0 else settings.crossfadeSeconds }, { mixer.replayGain }, scope)
+        // Audiobook chapters never crossfade: words would be lost under the next chapter.
+        val crossfadeSeconds = { if (settings.bitPerfect || MediaItems.bookKey(exo.currentMediaItem) != null) 0 else settings.crossfadeSeconds }
+        crossfader = Crossfader(this, { exo }, mixer, crossfadeSeconds, { mixer.replayGain }, scope)
         playCounter = PlayCountTracker({ exo }, scope) { trackId -> container.history.recordPlay(trackId) }
+        bookProgress = BookProgressTracker({ exo }, scope, container.appScope, container.books::saveProgress)
         effects = AudioEffectsController(audioSessionId)
         widgetPublisher = WidgetStatePublisher(container.widgetState)
         attachListeners(exo)
@@ -114,6 +118,8 @@ class PlaybackService : MediaLibraryService() {
 
     override fun onDestroy() {
         saveQueueNow()
+        bookProgress.saveNow()
+        bookProgress.stop()
         getSystemService(AudioManager::class.java).unregisterAudioDeviceCallback(bluetoothReconnect)
         crossfader.release()
         effects.release()
@@ -136,6 +142,7 @@ class PlaybackService : MediaLibraryService() {
         player.addListener(sleepTimer)
         player.addListener(crossfader)
         player.addListener(playCounter)
+        player.addListener(bookProgress)
         player.addListener(widgetPublisher)
         player.addAnalyticsListener(container.outputMonitor.analyticsListener)
     }

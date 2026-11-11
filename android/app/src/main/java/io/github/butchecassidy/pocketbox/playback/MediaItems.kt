@@ -16,6 +16,7 @@ object MediaItems {
     const val EXTRA_ART_URI = "pocketbox.art.uri"
     const val EXTRA_ART_SOURCE = "pocketbox.art.source"
     const val EXTRA_ART_VERSION = "pocketbox.art.version"
+    const val EXTRA_BOOK_KEY = "pocketbox.book"
 
     // Artwork is addressed with a private scheme so no other app ever tries to open the real file.
     private const val ART_SCHEME = "pocketbox-art"
@@ -49,6 +50,7 @@ object MediaItems {
             extras.putInt(EXTRA_ART_SOURCE, it.source.ordinal)
             extras.putLong(EXTRA_ART_VERSION, it.version)
         }
+        if (track.isAudiobook) extras.putString(EXTRA_BOOK_KEY, track.albumKey)
         return MediaMetadata.Builder()
             .setTitle(track.title)
             .setArtist(track.artist)
@@ -63,10 +65,13 @@ object MediaItems {
             .setArtworkUri(track.art?.let(::artworkUri))
             .setIsPlayable(isPlayable)
             .setIsBrowsable(false)
-            .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+            .setMediaType(if (track.isAudiobook) MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER else MediaMetadata.MEDIA_TYPE_MUSIC)
             .setExtras(extras)
             .build()
     }
+
+    /** The book an audiobook chapter belongs to; null for songs. */
+    fun bookKey(item: MediaItem?): String? = item?.mediaMetadata?.extras?.getString(EXTRA_BOOK_KEY)
 
     /** Art reference carried in an item's extras, for the queue and mini player. */
     fun artRef(metadata: MediaMetadata): ArtRef? {

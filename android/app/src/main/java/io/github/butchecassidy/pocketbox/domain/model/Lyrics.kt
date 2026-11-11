@@ -27,4 +27,11 @@ sealed interface Lyrics {
     data class Unsynced(val text: String) : Lyrics
 }
 
-data class LyricLine(val timeMs: Long, val text: String)
+/** One line; [words] is filled only for "enhanced" LRC, where every word carries its own time. */
+data class LyricLine(val timeMs: Long, val text: String, val words: List<LyricWord> = emptyList()) {
+    /** How many words, from the first, have started at [positionMs] (a mistimed word never skips ahead). */
+    fun wordsSungAt(positionMs: Long): Int = words.indexOfFirst { it.timeMs > positionMs }.let { if (it < 0) words.size else it }
+}
+
+/** A word (with its trailing space) and when it starts. */
+data class LyricWord(val timeMs: Long, val text: String)

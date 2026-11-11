@@ -20,6 +20,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -43,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.butchecassidy.pocketbox.BuildConfig
@@ -69,8 +72,8 @@ import io.github.butchecassidy.pocketbox.ui.navigation.Routes
 import io.github.butchecassidy.pocketbox.ui.navigation.SettingsSection
 import io.github.butchecassidy.pocketbox.ui.support.openDonationPage
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
-import java.util.Locale
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /** Settings state and a single way to change it, shared by every settings screen. */
 @Composable
@@ -168,11 +171,22 @@ private fun LibrarySettings() {
     if (roots.isEmpty()) ListItem(headlineContent = { Text(stringResource(R.string.no_folders)) })
     roots.forEach { root ->
         ListItem(
-            headlineContent = { Text(root.name) },
-            supportingContent = if (root.isAccessible) null else ({ Text(stringResource(R.string.access_lost_short), color = MaterialTheme.colorScheme.error) }),
+            headlineContent = { Text(root.name, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            supportingContent = when {
+                !root.isAccessible -> ({ Text(stringResource(R.string.access_lost_short), color = MaterialTheme.colorScheme.error) })
+                root.isAudiobooks -> ({ Text(stringResource(R.string.audiobook_folder)) })
+                else -> null
+            },
             leadingContent = { Icon(painterResource(R.drawable.ic_folder), null) },
             trailingContent = {
                 Row {
+                    IconToggleButton(
+                        checked = root.isAudiobooks,
+                        shapes = IconButtonDefaults.toggleableShapes(),
+                        onCheckedChange = { checked -> container.appScope.launch { container.scanner.setAudiobookFolder(root.id, checked) } },
+                    ) {
+                        Icon(painterResource(R.drawable.ic_auto_stories), stringResource(R.string.mark_audiobook_folder))
+                    }
                     PocketIconButton(R.drawable.ic_visibility_off, stringResource(R.string.exclude_subfolder), { excluding = root })
                     PocketIconButton(R.drawable.ic_delete, stringResource(R.string.remove), {
                         container.appScope.launch { container.scanner.removeFolder(root.id) }
