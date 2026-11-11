@@ -1,6 +1,6 @@
 # active-memory handoff: Pocket Box (offline Material 3 Expressive music player for GrapheneOS / Pixel 8+)
 
-**Handoff #2** · 2026-11-11 · Lineage: #1 (2026-11-10): planned the app; built tasks 1–14 of 24 (scaffold, data, scanner, playback, effects, theme, full UI); everything compiles, 42 unit tests pass, pushed; #2 (2026-11-11): fixed the cloud setup script; added a new task (integrity check) so the list is now 25; built tasks 15–20 (widget, integrity check, baseline profile, tests, repo docs, full build + lint); 68 tests pass; created the release signing key; signed beta APK sent to the user (GitHub Release not created: tag push blocked).
+**Handoff #2** · 2026-11-11 · Lineage: #1 (2026-11-10): planned the app; built tasks 1–14 of 24 (scaffold, data, scanner, playback, effects, theme, full UI); everything compiles, 42 unit tests pass, pushed; #2 (2026-11-11): fixed the cloud setup script; added a new task (integrity check) so the list is now 25; built tasks 15–20 (widget, integrity check, baseline profile, tests, repo docs, full build + lint); 68 tests pass; created the release signing key; signed beta APK sent to the user; release workflow made hand-startable and Beta 1 published on GitHub Releases by it (run 42944783717).
 
 ## 0. Instructions for Claude (read first)
 
@@ -102,6 +102,7 @@ You are continuing work from a previous chat. That chat is gone; this file is th
   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`
   `Claude-Session: https://claude.ai/code/session_01JPHpnf1DxsdZEPT1yozkoQ`
 - PR description ending (only if asked): `🤖 Generated with [Claude Code](https://claude.com/claude-code)` + blank line + `https://claude.ai/code/session_01JPHpnf1DxsdZEPT1yozkoQ`
+- **How to publish a release from a cloud session:** start the workflow with the GitHub MCP tool `actions_run_trigger` (`method: run_workflow`, owner `ButcheCassidy`, repo `PocketBox`, `workflow_id: release.yml`, `ref: dimitri/exciting-faraday-oh69ke`, `inputs: {"version": "<x.y.z or x.y.z-beta.n>"}`). The workflow tests, builds, signs with the repo secrets (all 4 are set), creates tag `v<version>` and the release (pre-release when the version has a dash). Takes ~13 min. Check with `actions_list` / `get_release_by_tag`. My GitHub identity is the user's own account `ButcheCassidy` (no collaborator invite needed).
 - **Tag push is blocked from the cloud session** (`git push origin v1.0.0-beta.1` → "send-pack: unexpected disconnect … remote end hung up", 5 tries); only the branch can be pushed. GitHub MCP has no create-release/create-tag tool. No tag exists on GitHub. Local tag was deleted.
 
 **Build (verified 2026-11-11)**
@@ -198,7 +199,7 @@ You are continuing work from a previous chat. That chat is gone; this file is th
 | 18 Tests | done | `app/src/test/...` (68), `app/src/androidTest/.../NowPlayingCenteringTest.kt` | centring test not run (no device) |
 | 19 Docs & GitHub files | done | README, LICENSE, BUILDING, SECURITY, CHANGELOG ("1.0.0 - Unreleased"), CONTRIBUTING, NOTICE, THIRD_PARTY_NOTICES, DONATE, `.github/FUNDING.yml` (all commented), issue forms + `config.yml`, `.github/workflows/release.yml`, `docs/screenshots/README.md`, `.editorconfig` | |
 | 20 Build + lint + tests | done | | 0 lint errors, 60 warnings |
-| Beta release | APK sent, Release NOT created | user's files | tag push blocked; see section 11 step 6 |
+| Beta release | **published** | https://github.com/ButcheCassidy/PocketBox/releases/tag/v1.0.0-beta.1 | pre-release built by the workflow from `998d9c2`; APK SHA-256 `c99b35afc7aac08ecfbea86ebc49e86384df3532aeac3ddfcdd7188e65193507` (the copy sent to the user earlier, `79b3f497…`, is an older local build of `845a9f9`) |
 | 21 Review 1: bugs | not started | | |
 | 22 Review 2: GrapheneOS/devices/manifest | not started | | |
 | 23 Review 3: performance | not started | | |
@@ -213,17 +214,15 @@ Every source file starts with: `// Copyright (c) 2026 ButcheCassidy - The Nomadi
 3. Task 23 (performance): `PlayerConnection` keeps a `MediaController` bound forever (also from widget taps) → service may never stop when idle: release when no UI/widget needs it; integrity inspector loads every embedded picture (≤16 MB each) once per new file; widget `produceState` art loading; the lint warnings in section 8; verify search < 50 ms claim reasoning; seek bar frame loop only while visible.
 4. Task 24 (security & signing): §8 + §9 audit; decide `android:permission` on the widget receiver (e.g. `android.permission.BIND_APPWIDGET`, test-safe?) and document; confirm every PendingIntent immutable (Glance-created too); R8 keep rules (Glance keeps `ActionCallback` subclasses); no secrets in repo (`git log -p` scan for passwords, `.jks`); `.gitignore` coverage; workflow review.
 5. Task 25: write `docs/TESTING.md` (manual checklist incl. Bluetooth headphones, USB DAC, light/dark switching, network off, revoking folder access, widget, integrity hold-back + "Add anyway", beta upgrade path); **repo cleanup**: delete tracked `docs/handoff-pocketbox.md`; remove `.gitignore` lines that no longer apply (`ARCHITECTURE.md`, `LICENSES.md`, `reference-repos`, possibly `PocketBox_Prompt.md`/`handoff-pocketbox.md` kept so they can't be committed); ensure no build leftovers tracked; update CHANGELOG/ARCHITECTURE if reviews changed things; final report per spec §11 step 9 (permissions incl. `MODIFY_AUDIO_SETTINGS` deviation and the signature permission; "no `// VERIFY VERSION` items: every version was checked"; known limitations; APK ~6.0 MB; exact commands: build signed APK, `git init`/commit/add remote/push/tag for a first push; note PolyForm vs spec's MIT/GPL-3.0 note; reminders: fill `DONATION_URL` in `SupportConfig.kt` and `.github/FUNDING.yml`, back up the keystore, add the 4 GitHub secrets).
-6. Beta on GitHub Releases (owner action, cloud session can't push tags): either upload `PocketBox-1.0.0-beta.1.apk` + `.sha256` via Releases → Draft a new release → tag `v1.0.0-beta.1` (target branch `dimitri/exciting-faraday-oh69ke`) → "Set as a pre-release" → Publish; or add the 4 secrets and push the tag from a computer (`git tag v1.0.0-beta.1` then `git push origin v1.0.0-beta.1`) so the workflow publishes it. If the workflow and a manual release both run for the same tag, `gh release create` fails (release exists).
+6. Releases: after the reviews, publish the next build (for example `1.0.0-beta.2` or `1.0.0`) through the hand-started workflow (section 8). Bump `versionCode`/`versionName` in `app/build.gradle.kts` first for anything that should install over beta 1 (beta 1 = versionCode 1, versionName 1.0.0); update CHANGELOG.
 
 ## 12. Open questions ⚠️
-- Did the user upload beta 1 to GitHub Releases, and did they add the 4 signing secrets to the repository? (Affects whether the release workflow has been exercised.)
-- Should the cloud session's push restriction be checked again in the new chat (a fresh session may allow tag pushes)? Candidate: try once `git push origin v1.0.0-beta.1`; if refused, leave it to the owner.
-- After the reviews, should a beta 2 be built? The key isn't in the new container; the user would have to provide secrets in the repo (workflow) or build locally per BUILDING.md.
+- Version numbers for later builds: should beta 2 be versionCode 2 / versionName "1.0.0-beta.2"? (Needed so it installs over beta 1.)
 
 ## 13. Re-attach checklist
 - [ ] `PocketBox_Prompt.md`: the full spec (git-ignored, not in the repo). Note: the attached copy is an older version (MIT license, no donation §6E); the PolyForm + donation decisions in section 6 override it.
 - [ ] This file `handoff-pocketbox.md`.
-- [ ] (Optional, only if a newly signed build is needed) the user's `pocketbox-release.jks` + `pocketbox-signing-secrets.txt`. Prefer GitHub secrets over attaching them to a chat.
+- Never attach the keystore or secrets file to a chat: the 4 GitHub secrets are already set and the workflow signs.
 
 ---
 <sub>Audit: 13/13 sections · 17 rules · 5 corrections · 150+ data points · secrets removed: yes (keystore password) · generated by active-memory</sub>
