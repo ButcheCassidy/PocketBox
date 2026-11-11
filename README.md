@@ -195,4 +195,6 @@ Pocket Box is source-available under the [PolyForm Strict License 1.0.0](LICENSE
 
 ---
 
+Thanks for riding along with Pocket Box. If you'd like to help it grow, a donation goes a long way, and thank you very much in advance.
+
 Made by **ButcheCassidy - The Nomadic Rebel** · [Donate](DONATE.md)

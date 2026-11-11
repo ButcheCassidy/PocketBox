@@ -34,7 +34,13 @@ Either way, install the exact SDK parts Pocket Box builds with:
 
 Accept the licences when asked.
 
-Finally, download the source code (the green **Code** button on GitHub, then **Download ZIP**, or `git clone`), and open a terminal in the `PocketBox` folder. If you didn't set `ANDROID_HOME`, create a file called `local.properties` there containing one line:
+Finally, download the source code (the green **Code** button on GitHub, then **Download ZIP**, or `git clone`), and open a terminal in the `PocketBox` folder. Everything needed to build the app lives in its `android` folder, so go there first; every command below runs from it:
+
+```bash
+cd android
+```
+
+If you didn't set `ANDROID_HOME`, create a file called `local.properties` in the `android` folder containing one line:
 
 ```
 sdk.dir=/full/path/to/your/android-sdk
@@ -51,7 +57,7 @@ keytool -genkeypair -v -keystore pocketbox-release.jks -alias pocketbox -keyalg 
 It asks for a password and a few details (your name can be anything). Then:
 
 1. Move `pocketbox-release.jks` somewhere safe **outside** the project folder.
-2. Copy `keystore.properties.example` to `keystore.properties` (in the project folder) and fill in the path to your `.jks` file, the alias (`pocketbox`) and your passwords.
+2. Copy `keystore.properties.example` to `keystore.properties` (both in the `android` folder) and fill in the path to your `.jks` file, the alias (`pocketbox`) and your passwords.
 
 **Back up the `.jks` file and its password**, for example on a USB stick and in your password manager. If you lose them, you can never publish an update that installs over the existing app: everyone would have to uninstall Pocket Box (losing their playlists and history) and install it again.
 
@@ -70,7 +76,7 @@ The first build downloads Gradle and the libraries, so it takes a few minutes. L
 ## 4. Find the APK
 
 ```
-app/build/outputs/apk/release/app-release.apk
+android/app/build/outputs/apk/release/app-release.apk
 ```
 
 That's your finished, signed, optimised app (about 6 MB).
@@ -112,7 +118,7 @@ It needs four repository secrets (**Settings → Secrets and variables → Actio
 | `POCKETBOX_KEY_ALIAS` | `pocketbox` |
 | `POCKETBOX_KEY_PASSWORD` | The key password |
 
-Before each new release, raise `versionCode` by one and set `versionName` in `app/build.gradle.kts`; phones only accept an update with a higher `versionCode`.
+Before each new release, raise `versionCode` by one and set `versionName` in `android/app/build.gradle.kts`; phones only accept an update with a higher `versionCode`.
 
 Then tag a version and push the tag:
 
@@ -136,7 +142,7 @@ Pocket Box ships a starter Baseline Profile. For the best start-up and scrolling
 ./gradlew :app:generateBaselineProfile
 ```
 
-The new profile is saved under `app/src/release/generated/baselineProfiles/` and used by the next release build. To measure cold start and scrolling with and without it:
+The new profile is saved under `android/app/src/release/generated/baselineProfiles/` and used by the next release build. To measure cold start and scrolling with and without it:
 
 ```bash
 ./gradlew :baselineprofile:connectedBenchmarkReleaseAndroidTest

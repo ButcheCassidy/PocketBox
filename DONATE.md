@@ -1,6 +1,8 @@
 # Donate
 
-Pocket Box is free, has no ads and never will. If it's earned a spot in your saddlebag and you'd like to buy the author a coffee by the campfire, thank you. It's appreciated, never expected.
+Howdy, partner, and thank you so much for riding along. Just by downloading Pocket Box and giving it a spot in your saddlebag, you're already supporting the project.
+
+Pocket Box is free, has no ads and never will. If you'd like to go a step further, a donation would greatly help me keep improving it: new features, fixes, and the long hours of testing on real phones that go with them. Every bit counts, and it's appreciated, never expected. Thank you very much in advance.
 
 > **Before you send:** only use the addresses on this page, in the official repository [ButcheCassidy/PocketBox](https://github.com/ButcheCassidy/PocketBox). After pasting an address into your wallet, check that its first and last few characters match.
 
