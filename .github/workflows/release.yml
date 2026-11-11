@@ -1,12 +1,19 @@
 # Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
-# Builds a signed release APK when a version tag (v1.0.0, v1.1.0-beta.1, …) is pushed, and publishes it
-# with its SHA-256 checksum as a GitHub Release. Only official actions, each pinned to a full commit SHA.
-# Signing comes from encrypted repository secrets (see BUILDING.md); nothing secret is in this file.
+# Builds a signed release APK and publishes it with its SHA-256 checksum as a GitHub Release, either
+# when a version tag (v1.0.0, v1.1.0-beta.1, …) is pushed, or when started by hand (Actions → Release →
+# Run workflow) with a version number; then it creates the tag itself. Only official actions, each
+# pinned to a full commit SHA. Signing comes from encrypted repository secrets (see BUILDING.md).
 name: Release
 
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, without the v (for example 1.0.0-beta.1)"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -20,9 +27,18 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write # create the release and upload the APK
+      contents: write # create the tag and release and upload the APK
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && format('v{0}', inputs.version) || github.ref_name }}
     steps:
-      - name: Check out the tagged code
+      - name: Check the version number
+        run: |
+          if ! echo "$TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$'; then
+            echo "::error::'$TAG' isn't a version like v1.0.0 or v1.1.0-beta.1."
+            exit 1
+          fi
+
+      - name: Check out the code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -67,8 +83,6 @@ jobs:
         run: ./gradlew --no-daemon assembleRelease
 
       - name: Check the signature and write the checksum
-        env:
-          TAG: ${{ github.ref_name }}
         run: |
           apk="PocketBox-${TAG#v}.apk"
           cp app/build/outputs/apk/release/app-release.apk "$apk"
@@ -83,9 +97,11 @@ jobs:
       - name: Publish the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
         run: |
           apk="PocketBox-${TAG#v}.apk"
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$TAG" "$apk" "$apk.sha256" --verify-tag --title "Pocket Box ${TAG#v}" --notes "Signed APK for Pixel 8 and newer. Check it with: sha256sum -c $apk.sha256" $prerelease
+          # A pushed tag already exists; a hand-started run creates it on the commit it built.
+          tag_option="--verify-tag"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then tag_option="--target=$GITHUB_SHA"; fi
+          gh release create "$TAG" "$apk" "$apk.sha256" "$tag_option" --title "Pocket Box ${TAG#v}" --notes "Signed APK for Pixel 8 and newer. Check it with: sha256sum -c $apk.sha256" $prerelease

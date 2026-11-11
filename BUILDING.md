@@ -122,7 +122,9 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-A tag with a dash in it (like `v1.1.0-beta.1`) is published as a pre-release.
+Or, without a computer: open the repository's **Actions** tab → **Release** → **Run workflow**, type the version without the `v` (for example `1.1.0`), and press **Run workflow**. It builds from the branch you pick, then creates the tag and the release itself.
+
+A version with a dash in it (like `1.1.0-beta.1`) is published as a pre-release.
 
 ## Optional: record a Baseline Profile
 
