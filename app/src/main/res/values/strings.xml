@@ -26,6 +26,12 @@
     <string name="unknown">Unknown</string>
     <string name="separator_dot">%1$s · %2$s</string>
 
+    <!-- Home-screen widget -->
+    <string name="widget_name">Pocket Box</string>
+    <string name="widget_description">Play, pause and skip from your home screen.</string>
+    <string name="widget_nothing_playing">Nothing playing</string>
+    <string name="widget_tap_to_open">Tap to open Pocket Box</string>
+
     <!-- Quality badges -->
     <string name="badge_lossy">Lossy</string>
     <string name="badge_lossless">Lossless</string>

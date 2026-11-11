@@ -8,6 +8,7 @@ import io.github.butchecassidy.pocketbox.data.db.PlaybackDao
 import io.github.butchecassidy.pocketbox.data.db.QueueItemEntity
 import io.github.butchecassidy.pocketbox.data.db.QueueStateEntity
 import io.github.butchecassidy.pocketbox.data.repo.LibraryRepository
+import io.github.butchecassidy.pocketbox.domain.model.Track
 import io.github.butchecassidy.pocketbox.domain.queue.ShuffleSequence
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -82,6 +83,11 @@ class QueueStore(
     }
 
     suspend fun savePosition(index: Int, positionMs: Long) = withContext(io) { dao.savePosition(index, positionMs) }
+
+    /** The song that will resume, when nothing is loaded in the player yet. */
+    suspend fun savedCurrentTrack(): Track? = withContext(io) {
+        dao.savedCurrentTrackId()?.let { library.tracksByIds(listOf(it)).firstOrNull() }
+    }
 
     /** Reads the saved queue. Songs deleted since are dropped and the position adjusted. */
     suspend fun restore(): RestoredQueue? = withContext(io) {
