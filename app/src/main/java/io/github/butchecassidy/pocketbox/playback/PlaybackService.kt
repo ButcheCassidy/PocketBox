@@ -36,6 +36,7 @@ import io.github.butchecassidy.pocketbox.di.AppContainer
 import io.github.butchecassidy.pocketbox.domain.audio.ReplayGainCalculator
 import io.github.butchecassidy.pocketbox.domain.model.UserSettings
 import io.github.butchecassidy.pocketbox.domain.queue.ShuffleSequence
+import io.github.butchecassidy.pocketbox.widget.WidgetStatePublisher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +63,7 @@ class PlaybackService : MediaLibraryService() {
     private lateinit var crossfader: Crossfader
     private lateinit var playCounter: PlayCountTracker
     private lateinit var effects: AudioEffectsController
+    private lateinit var widgetPublisher: WidgetStatePublisher
     private val mixer = VolumeMixer { volume -> if (::exo.isInitialized) exo.volume = volume }
     private var settings = UserSettings()
     private var audioSessionId = C.AUDIO_SESSION_ID_UNSET
@@ -80,6 +82,7 @@ class PlaybackService : MediaLibraryService() {
         crossfader = Crossfader(this, { exo }, mixer, { if (settings.bitPerfect) 0 else settings.crossfadeSeconds }, { mixer.replayGain }, scope)
         playCounter = PlayCountTracker({ exo }, scope) { trackId -> container.history.recordPlay(trackId) }
         effects = AudioEffectsController(audioSessionId)
+        widgetPublisher = WidgetStatePublisher(container.widgetState)
         attachListeners(exo)
 
         val sessionIntent = PendingIntent.getActivity(
@@ -119,6 +122,7 @@ class PlaybackService : MediaLibraryService() {
         session = null
         exo.release()
         container.sleepTimerState.value = SleepTimerState.Off
+        widgetPublisher.onServiceStopped()
         scope.cancel()
         super.onDestroy()
     }
@@ -133,6 +137,7 @@ class PlaybackService : MediaLibraryService() {
         player.addListener(sleepTimer)
         player.addListener(crossfader)
         player.addListener(playCounter)
+        player.addListener(widgetPublisher)
         player.addAnalyticsListener(container.outputMonitor.analyticsListener)
     }
 

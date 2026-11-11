@@ -1,6 +1,7 @@
 // Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
 package io.github.butchecassidy.pocketbox.ui.theme
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -86,17 +87,22 @@ fun PocketBoxTheme(config: ThemeConfig, content: @Composable () -> Unit) {
 fun rememberColorScheme(config: ThemeConfig, dark: Boolean): ColorScheme {
     val context = LocalContext.current
     return remember(config.source, config.customSeed, config.artSeed, dark, config.amoled) {
-        val seed = when (config.source) {
-            ColorSource.DYNAMIC -> null
-            ColorSource.ALBUM_ART -> config.artSeed ?: config.customSeed
-            ColorSource.CUSTOM -> config.customSeed
-        }
-        when {
-            seed == null && dark -> dynamicDarkColorScheme(context).let { if (config.amoled) SchemeFactory.amoled(it) else it }
-            seed == null -> dynamicLightColorScheme(context)
-            dark -> SchemeFactory.dark(seed, config.amoled)
-            else -> SchemeFactory.light(seed)
-        }
+        colorSchemeFor(context, config.source, config.customSeed, config.artSeed, dark, config.amoled)
+    }
+}
+
+/** The colour scheme for one set of choices; shared by the app and the home-screen widget. */
+fun colorSchemeFor(context: Context, source: ColorSource, customSeed: Int, artSeed: Int?, dark: Boolean, amoled: Boolean): ColorScheme {
+    val seed = when (source) {
+        ColorSource.DYNAMIC -> null
+        ColorSource.ALBUM_ART -> artSeed ?: customSeed
+        ColorSource.CUSTOM -> customSeed
+    }
+    return when {
+        seed == null && dark -> dynamicDarkColorScheme(context).let { if (amoled) SchemeFactory.amoled(it) else it }
+        seed == null -> dynamicLightColorScheme(context)
+        dark -> SchemeFactory.dark(seed, amoled)
+        else -> SchemeFactory.light(seed)
     }
 }
 

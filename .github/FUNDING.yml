@@ -1,0 +1,7 @@
+# Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
+# Adds a "Sponsor" button to the repository page. Remove the "#" in front of the services you use and
+# put in your own user names or links. While every line stays commented out, GitHub shows no button.
+# github: [your-github-user-name]
+# ko_fi: your-ko-fi-name
+# liberapay: your-liberapay-name
+# custom: ["https://example.org/your-donation-page"]

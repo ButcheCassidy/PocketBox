@@ -5,13 +5,23 @@ import io.github.butchecassidy.pocketbox.domain.model.AudioCodec
 import io.github.butchecassidy.pocketbox.domain.model.BitrateMode
 import java.util.Locale
 
-/** What a reader should load besides the normal tags and stream info. */
-data class ReadOptions(val wantPicture: Boolean = false, val wantLyrics: Boolean = false) {
+/**
+ * What a reader should load besides the normal tags and stream info. [inspectPictures] makes readers
+ * load every embedded picture (not just the cover) so the integrity check can look at each one.
+ */
+data class ReadOptions(val wantPicture: Boolean = false, val wantLyrics: Boolean = false, val inspectPictures: Boolean = false) {
     companion object {
         val SCAN = ReadOptions()
         val PICTURE = ReadOptions(wantPicture = true)
         val LYRICS = ReadOptions(wantLyrics = true)
+        val INSPECT = ReadOptions(inspectPictures = true)
     }
+}
+
+/** Sees every picture and text value a reader finds, before any trimming (used by the integrity check). */
+interface TagObserver {
+    fun onPicture(data: ByteArray)
+    fun onText(key: String, value: String)
 }
 
 /** An embedded picture. [type] follows the ID3/FLAC picture types (3 = front cover). */
@@ -21,7 +31,7 @@ class EmbeddedPicture(val type: Int, val data: ByteArray)
  * Tags collected from any format, under one set of canonical (Vorbis-style) names, with hard caps on
  * value length and count so a hostile file can't exhaust memory.
  */
-class RawTags(private val options: ReadOptions = ReadOptions.SCAN) {
+class RawTags(private val options: ReadOptions = ReadOptions.SCAN, private val observer: TagObserver? = null) {
     private val values = LinkedHashMap<String, MutableList<String>>()
 
     var hasPicture: Boolean = false
@@ -31,11 +41,12 @@ class RawTags(private val options: ReadOptions = ReadOptions.SCAN) {
     var picture: EmbeddedPicture? = null
         private set
 
-    val wantsPicture: Boolean get() = options.wantPicture && picture?.type != FRONT_COVER
+    val wantsPicture: Boolean get() = options.inspectPictures || (options.wantPicture && picture?.type != FRONT_COVER)
     val wantsLyrics: Boolean get() = options.wantLyrics
 
     fun add(rawKey: String, rawValue: String) {
         val key = canonicalKey(rawKey)
+        observer?.onText(key, rawValue)
         if (key == LYRICS) hasLyrics = true
         if (key == LYRICS && !options.wantLyrics) return
         val limit = if (key == LYRICS) MAX_LYRICS_LENGTH else MAX_VALUE_LENGTH
@@ -55,6 +66,8 @@ class RawTags(private val options: ReadOptions = ReadOptions.SCAN) {
     fun offerPicture(type: Int, data: ByteArray?) {
         hasPicture = true
         if (data == null || data.isEmpty()) return
+        observer?.onPicture(data)
+        if (!options.wantPicture) return
         val current = picture
         if (current == null || (type == FRONT_COVER && current.type != FRONT_COVER)) {
             picture = EmbeddedPicture(type, data)

@@ -1,0 +1,91 @@
+# Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
+# Builds a signed release APK when a version tag (v1.0.0, v1.1.0-beta.1, …) is pushed, and publishes it
+# with its SHA-256 checksum as a GitHub Release. Only official actions, each pinned to a full commit SHA.
+# Signing comes from encrypted repository secrets (see BUILDING.md); nothing secret is in this file.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write # create the release and upload the APK
+    steps:
+      - name: Check out the tagged code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the Gradle wrapper is genuine
+        uses: gradle/actions/wrapper-validation@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: true
+
+      - name: Install the Android SDK parts Pocket Box builds with
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-37.0" "build-tools;36.0.0" > /dev/null
+
+      - name: Restore the signing key from secrets
+        env:
+          KEYSTORE_BASE64: ${{ secrets.POCKETBOX_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::error::The POCKETBOX_KEYSTORE_BASE64 secret is missing. See BUILDING.md, 'Optional: publish releases from GitHub'."
+            exit 1
+          fi
+          umask 077
+          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+
+      - name: Run the unit tests
+        run: ./gradlew --no-daemon testDebugUnitTest
+
+      - name: Build the signed release APK
+        env:
+          POCKETBOX_KEYSTORE_FILE: ${{ runner.temp }}/release.jks
+          POCKETBOX_KEYSTORE_PASSWORD: ${{ secrets.POCKETBOX_KEYSTORE_PASSWORD }}
+          POCKETBOX_KEY_ALIAS: ${{ secrets.POCKETBOX_KEY_ALIAS }}
+          POCKETBOX_KEY_PASSWORD: ${{ secrets.POCKETBOX_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Check the signature and write the checksum
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          apk="PocketBox-${TAG#v}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$apk"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk"
+          sha256sum "$apk" > "$apk.sha256"
+          cat "$apk.sha256"
+
+      - name: Remove the signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Publish the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          apk="PocketBox-${TAG#v}.apk"
+          prerelease=""
+          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          gh release create "$TAG" "$apk" "$apk.sha256" --verify-tag --title "Pocket Box ${TAG#v}" --notes "Signed APK for Pixel 8 and newer. Check it with: sha256sum -c $apk.sha256" $prerelease

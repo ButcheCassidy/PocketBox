@@ -19,6 +19,8 @@ import io.github.butchecassidy.pocketbox.playback.PlayerConnection
 import io.github.butchecassidy.pocketbox.playback.QueueController
 import io.github.butchecassidy.pocketbox.playback.QueueStore
 import io.github.butchecassidy.pocketbox.playback.SleepTimerState
+import io.github.butchecassidy.pocketbox.widget.WidgetRefresher
+import io.github.butchecassidy.pocketbox.widget.WidgetSnapshot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -60,4 +62,6 @@ class AppContainer(context: Context) {
     // State shared between the playback service and the UI (both run in this one process).
     val sleepTimerState = MutableStateFlow<SleepTimerState>(SleepTimerState.Off)
     val playbackMessages = MutableSharedFlow<String>(extraBufferCapacity = 4)
+    val widgetState = MutableStateFlow<WidgetSnapshot?>(null)
+    val widgetRefresher by lazy { WidgetRefresher(appContext, appScope) }
 }

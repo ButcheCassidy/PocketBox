@@ -1,0 +1,6 @@
+# Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE.
+# Seed Baseline Profile: compile all of Pocket Box's own code ahead of time on install (it is small).
+# Running ./gradlew :app:generateBaselineProfile on a connected Pixel records an exact profile
+# (startup + library scrolling) next to this file. AndroidX libraries ship their own profiles.
+HSPLio/github/butchecassidy/pocketbox/**;->**(**)**
+Lio/github/butchecassidy/pocketbox/**;

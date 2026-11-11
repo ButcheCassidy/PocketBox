@@ -15,6 +15,7 @@ import io.github.butchecassidy.pocketbox.domain.model.ArtRef
 import io.github.butchecassidy.pocketbox.domain.model.RepeatMode
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -183,9 +184,9 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
         return QueueState(entries, order)
     }
 
-    private fun command(block: (MediaController) -> Unit) {
+    /** Runs [block] once connected. The returned job lets a caller (the widget) wait until it was sent. */
+    private fun command(block: (MediaController) -> Unit): Job =
         scope.launch { runCatching { controller() }.getOrNull()?.let(block) }
-    }
 
     // ---- Transport ----
 

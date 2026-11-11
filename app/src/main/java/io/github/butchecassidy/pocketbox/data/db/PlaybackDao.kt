@@ -18,6 +18,10 @@ interface PlaybackDao {
     @Query("SELECT * FROM queue_state WHERE id = 0")
     suspend fun queueState(): QueueStateEntity?
 
+    /** The saved song that was playing, without reading the whole queue (used by the widget). */
+    @Query("SELECT trackId FROM queue_items WHERE position = (SELECT currentIndex FROM queue_state WHERE id = 0)")
+    suspend fun savedCurrentTrackId(): Long?
+
     @Query("DELETE FROM queue_items")
     suspend fun clearQueueItems()
 

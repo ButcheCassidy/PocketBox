@@ -20,6 +20,7 @@ object Routes {
     const val FACET = "facet/{type}/{value}"
     const val EQUALIZER = "equalizer"
     const val LICENSES = "licenses"
+    const val HELD_FILES = "held"
 
     val topLevel = setOf(LIBRARY, SEARCH, SETTINGS)
 

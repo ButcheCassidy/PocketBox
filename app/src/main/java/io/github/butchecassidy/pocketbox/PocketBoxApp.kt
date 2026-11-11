@@ -12,5 +12,6 @@ class PocketBoxApp : Application() {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        container.widgetRefresher.start(container.widgetState, container.settings.settings)
     }
 }

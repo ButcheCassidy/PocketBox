@@ -7,11 +7,9 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,16 +22,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.min
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.butchecassidy.pocketbox.R
 import io.github.butchecassidy.pocketbox.domain.model.RepeatMode
@@ -139,25 +136,7 @@ fun NowPlayingScreen(onCollapse: () -> Unit, sharedScope: SharedTransitionScope,
         NowPlayingBackground(state.art, state.album, settings.nowPlayingStyle)
         Column(Modifier.fillMaxSize().safeDrawingPadding()) {
             TopRow(onCollapse, onSheet = { sheet = it }, trackAlbumKey = track?.albumKey, trackArtistKey = track?.artistKey)
-            BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = spacing.screen)) {
-                val width = maxWidth
-                if (width > maxHeight) {
-                    // Landscape: two columns, each centred in itself.
-                    val artSize = min(maxHeight - spacing.three, width / 2 - spacing.three)
-                    Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { art(artSize) }
-                        Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { details(width / 2 - spacing.four) }
-                    }
-                } else {
-                    // Portrait: 84 % of the width, capped so the controls always fit below.
-                    val artSize = min(maxWidth * ART_WIDTH_FRACTION, maxHeight * ART_HEIGHT_FRACTION)
-                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        art(artSize)
-                        Spacer(Modifier.height(spacing.three))
-                        details(artSize)
-                    }
-                }
-            }
+            NowPlayingLayout(art, details)
         }
     }
 
@@ -214,5 +193,3 @@ private fun neighbours(queue: QueueState, state: PlayerState): ArtNeighbours {
     return ArtNeighbours(previous?.art, previous?.let { "q-${it.index}" }, next?.art, next?.let { "q-${it.index}" })
 }
 
-private const val ART_WIDTH_FRACTION = 0.84f
-private const val ART_HEIGHT_FRACTION = 0.45f

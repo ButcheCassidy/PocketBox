@@ -21,6 +21,28 @@ data class FolderEntity(
     val addedAt: Long,
 )
 
+/**
+ * A new file the integrity check held back because it contains something besides music, tags, art
+ * and lyrics. It stays out of the library until the user taps "Add anyway" ([approved]).
+ */
+@Entity(
+    tableName = "held_files",
+    foreignKeys = [ForeignKey(FolderEntity::class, ["id"], ["folderId"], onDelete = ForeignKey.CASCADE)],
+    indices = [Index("folderId")],
+)
+data class HeldFileEntity(
+    @PrimaryKey val documentUri: String,
+    val folderId: Long,
+    val fileName: String,
+    val folderPath: String,
+    val fileSize: Long,
+    val lastModified: Long,
+    /** One finding per line, see IntegrityFinding.encode(). */
+    val findings: String,
+    val heldAt: Long,
+    val approved: Boolean = false,
+)
+
 /** A subfolder the user chose to leave out of the library. */
 @Entity(
     tableName = "excluded_folders",

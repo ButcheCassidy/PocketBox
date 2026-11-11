@@ -30,3 +30,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "PocketBox"
 include(":app")
+include(":baselineprofile")

@@ -119,4 +119,7 @@ object Mp3Reader {
 
     /** True when an MPEG frame header starts at the beginning of [bytes]. */
     fun startsWithFrame(bytes: ByteArray): Boolean = parseHeader(bytes) != null
+
+    /** Length in bytes of the MPEG frame whose header starts at [at], or null if there is no valid header. */
+    internal fun frameLength(bytes: ByteArray, at: Int): Int? = parseHeader(bytes, at)?.length
 }

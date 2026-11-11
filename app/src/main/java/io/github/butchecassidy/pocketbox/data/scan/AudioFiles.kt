@@ -4,6 +4,8 @@ package io.github.butchecassidy.pocketbox.data.scan
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import io.github.butchecassidy.pocketbox.data.scan.integrity.IntegrityFinding
+import io.github.butchecassidy.pocketbox.data.scan.integrity.IntegrityInspector
 import io.github.butchecassidy.pocketbox.data.scan.tags.AudioFileReader
 import io.github.butchecassidy.pocketbox.data.scan.tags.FileChannelSource
 import io.github.butchecassidy.pocketbox.data.scan.tags.ParsedAudio
@@ -26,6 +28,18 @@ class AudioFiles(context: Context) {
     /** Reads stream info and tags with Pocket Box's own readers, falling back to Android's retriever. */
     fun read(uri: Uri, options: ReadOptions = ReadOptions.SCAN): ParsedAudio? =
         readOwn(uri, options) ?: readWithPlatform(uri, options)
+
+    /**
+     * The integrity check (see IntegrityInspector): what the file holds besides music, tags, art and
+     * lyrics. Empty when it's clean; null when the file can't be opened at all.
+     */
+    fun inspect(uri: Uri): List<IntegrityFinding>? = runCatching {
+        resolver.openFileDescriptor(uri, "r")?.use { pfd ->
+            FileInputStream(pfd.fileDescriptor).use { stream ->
+                FileChannelSource(stream.channel).use(IntegrityInspector::inspect)
+            }
+        }
+    }.getOrNull()
 
     private fun readOwn(uri: Uri, options: ReadOptions): ParsedAudio? = runCatching {
         resolver.openFileDescriptor(uri, "r")?.use { pfd ->

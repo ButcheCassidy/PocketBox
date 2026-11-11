@@ -80,7 +80,7 @@ private fun rememberSettings(): Pair<UserSettings, ((UserSettings) -> UserSettin
 }
 
 @Composable
-private fun SettingsScaffold(title: String, showBack: Boolean = true, content: @Composable () -> Unit) {
+internal fun SettingsScaffold(title: String, showBack: Boolean = true, content: @Composable () -> Unit) {
     val navigator = LocalNavigator.current
     Scaffold(
         topBar = { PocketTopBar(title, onBack = if (showBack) ({ navigator.back() }) else null) },
@@ -153,6 +153,7 @@ fun SettingsSectionScreen(section: SettingsSection) {
 @Composable
 private fun LibrarySettings() {
     val container = LocalAppContainer.current
+    val navigator = LocalNavigator.current
     val scope = rememberCoroutineScope()
     val (settings, update) = rememberSettings()
     val roots by container.scanner.roots.collectAsStateWithLifecycle(emptyList())
@@ -194,6 +195,9 @@ private fun LibrarySettings() {
                 },
             )
         }
+    }
+    LinkRow(stringResource(R.string.held_files), stringResource(R.string.held_files_body), R.drawable.ic_shield) {
+        navigator.go(Routes.HELD_FILES)
     }
     val running = scan as? ScanState.Running
     LinkRow(

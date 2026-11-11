@@ -16,10 +16,14 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -70,6 +74,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import io.github.butchecassidy.pocketbox.R
 import io.github.butchecassidy.pocketbox.domain.model.ArtRef
 import io.github.butchecassidy.pocketbox.domain.model.Lyrics
@@ -83,9 +88,9 @@ import io.github.butchecassidy.pocketbox.ui.components.QualityBadge
 import io.github.butchecassidy.pocketbox.ui.rememberHaptic
 import io.github.butchecassidy.pocketbox.ui.theme.LocalReduceMotion
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
-import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /** Test tags for the centring test: art, progress bar and play button share one centre line. */
 object NowPlayingTags {
@@ -96,6 +101,33 @@ object NowPlayingTags {
 
 /** Neighbouring covers for swipe-to-skip; null when there's nothing that way (repeat off, queue end). */
 data class ArtNeighbours(val previous: ArtRef?, val previousKey: String?, val next: ArtRef?, val nextKey: String?)
+
+/**
+ * Places the art and everything under it on one vertical centre line. Portrait: art at 84 % of the
+ * width (capped so the controls fit), details below at the same width. Landscape: two columns, each
+ * centred in itself. [details] gets the width the progress bar must match.
+ */
+@Composable
+fun NowPlayingLayout(art: @Composable (Dp) -> Unit, details: @Composable (Dp) -> Unit) {
+    val spacing = LocalSpacing.current
+    BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = spacing.screen)) {
+        val width = maxWidth
+        if (width > maxHeight) {
+            val artSize = min(maxHeight - spacing.three, width / 2 - spacing.three)
+            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { art(artSize) }
+                Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.Center) { details(width / 2 - spacing.four) }
+            }
+        } else {
+            val artSize = min(maxWidth * ART_WIDTH_FRACTION, maxHeight * ART_HEIGHT_FRACTION)
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                art(artSize)
+                Spacer(Modifier.height(spacing.three))
+                details(artSize)
+            }
+        }
+    }
+}
 
 /**
  * The album art square. Shrinks to 88 % when paused; swipe left/right to skip (the neighbour slides
@@ -478,3 +510,6 @@ private const val LYRIC_CONTEXT_LINES = 2
 private const val SCRIM_ALPHA = 0.72f
 private val BLUR_SOURCE_SIZE = 96.dp
 private val BLUR_RADIUS = 48.dp
+
+private const val ART_WIDTH_FRACTION = 0.84f
+private const val ART_HEIGHT_FRACTION = 0.45f
