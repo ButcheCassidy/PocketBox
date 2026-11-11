@@ -8,6 +8,14 @@ Pocket Box is an offline music player for Android, built with Material 3 Express
 
 **Runs on:** Google Pixel 6 and newer (Fold models excluded), on GrapheneOS or stock Android 14+.
 
+<p align="center">
+  <img src=".github/screenshots/now-playing.jpg" width="19%" alt="Now Playing: centred art, quality chips, wavy progress bar and controls">
+  <img src=".github/screenshots/albums.jpg" width="19%" alt="Albums tab with Recently played, Most played and Recently added shelves">
+  <img src=".github/screenshots/songs.jpg" width="19%" alt="Songs tab in A to Z order with letter headers and the letter rail">
+  <img src=".github/screenshots/singles-and-eps.jpg" width="19%" alt="Singles and EPs tab with Hi-Res badges">
+  <img src=".github/screenshots/equalizer.jpg" width="19%" alt="The 10-band equalizer">
+</p>
+
 ---
 
 ## What it doesn't do
@@ -199,10 +207,6 @@ Pocket Box can't reach the internet, reads only the folders you give it, treats 
 - **The integrity check** looks for things that shouldn't be in a music file. It can't prove a file is harmless, and it runs only the first time a song is added, not every time it plays.
 - **Formats Android reads for Pocket Box** (Matroska audio, raw AAC) show fewer quality details than the formats it reads itself.
 - **Nothing online, by design:** no streaming, no downloaded artwork or lyrics, no update checks.
-
-## Screenshots
-
-Screenshots of the library, Now Playing, lyrics, the queue, settings and the widget, in light and dark, will be added here.
 
 ## License
 
