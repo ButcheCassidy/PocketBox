@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel. Licensed under PolyForm Strict 1.0.0. See LICENSE. -->
+<lint>
+    <!-- Media3's @UnstableApi is opted into for the whole app in build.gradle.kts (Kotlin compiler
+         optIn); this tells lint the same, as Media3's own documentation recommends. Every other
+         opt-in API is still checked. -->
+    <issue id="UnsafeOptInUsageError">
+        <option name="opt-in" value="androidx.media3.common.util.UnstableApi" />
+    </issue>
+</lint>

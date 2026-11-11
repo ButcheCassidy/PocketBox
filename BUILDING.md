@@ -87,13 +87,13 @@ That's your finished, signed, optimised app (about 6 MB).
 
 ## 6. Check the signature
 
-To confirm the APK is signed with your key (and v2/v3 signing is on):
+To confirm the APK is signed with your key:
 
 ```bash
 "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs --verbose app/build/outputs/apk/release/app-release.apk
 ```
 
-Look for `Verified using v2 scheme (APK Signature Scheme v2): true` and `... v3 ...: true`, and a certificate whose SHA-256 digest matches your key's:
+Look for `Verifies` and `Verified using v3 scheme (APK Signature Scheme v3): true`. (v2 signing is switched on too, but because Pocket Box needs Android 14, which always checks the newer v3 signature, the build tools leave the v2 block out and apksigner reports it as `false`.) The certificate's SHA-256 digest must match your key's:
 
 ```bash
 keytool -list -v -keystore /path/to/pocketbox-release.jks -alias pocketbox

@@ -22,9 +22,9 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -36,6 +36,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,8 +55,8 @@ import io.github.butchecassidy.pocketbox.ui.components.InfoRow
 import io.github.butchecassidy.pocketbox.ui.components.PocketSheet
 import io.github.butchecassidy.pocketbox.ui.components.QualityDetails
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
-import io.github.butchecassidy.pocketbox.ui.components.reorderItem
 import io.github.butchecassidy.pocketbox.ui.components.rememberReorderState
+import io.github.butchecassidy.pocketbox.ui.components.reorderItem
 import io.github.butchecassidy.pocketbox.ui.library.NewPlaylistDialog
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSizes
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
@@ -183,7 +184,7 @@ fun SleepTimerSheet(vm: NowPlayingViewModel, onDismiss: () -> Unit) {
         Text(stringResource(R.string.sleep_timer), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(horizontal = spacing.screen))
         val status = when (val t = timer) {
             SleepTimerState.Off -> null
-            is SleepTimerState.Timed -> stringResource(R.string.timer_until, DateFormat.getTimeInstance(DateFormat.SHORT, Locale.getDefault()).format(Date(t.endsAtMs)))
+            is SleepTimerState.Timed -> stringResource(R.string.timer_until, DateFormat.getTimeInstance(DateFormat.SHORT, LocalConfiguration.current.locales[0]).format(Date(t.endsAtMs)))
             is SleepTimerState.EndOfTrack -> stringResource(R.string.timer_end_of_track_on)
         }
         if (status != null) Text(status, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = spacing.screen, vertical = spacing.one))

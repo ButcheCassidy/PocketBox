@@ -78,7 +78,7 @@ class NowPlayingWidget : GlanceAppWidget() {
         val firstArt = firstSnapshot?.art?.let { loadArt(container, it) }
         provideContent {
             val settings by container.settings.settings.collectAsState(firstSettings)
-            val live by container.widgetState.collectAsState(container.widgetState.value)
+            val live by container.widgetState.collectAsState()
             val snapshot = live ?: firstSnapshot
             val art by produceState(firstArt?.takeIf { it.ref == snapshot?.art }, snapshot?.art) {
                 value = snapshot?.art?.let { loadArt(container, it) }
