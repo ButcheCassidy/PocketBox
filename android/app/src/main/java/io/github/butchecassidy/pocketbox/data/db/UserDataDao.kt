@@ -49,7 +49,7 @@ interface UserDataDao {
 
     @Query(
         "SELECT $TRACK_COLUMNS FROM playlist_entries e JOIN tracks ON tracks.id = e.trackId " +
-            "WHERE e.playlistId = :playlistId AND tracks.isHidden = 0 ORDER BY e.position",
+            "WHERE e.playlistId = :playlistId AND tracks.isHidden = 0 AND tracks.isAudiobook = 0 ORDER BY e.position",
     )
     fun playlistTracks(playlistId: Long): Flow<List<TrackRow>>
 

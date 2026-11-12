@@ -107,19 +107,19 @@ private fun SongActionsSheet(track: Track, state: ActionsState, onOpenAlbum: (St
     val close = { state.song = null }
     PocketSheet(onDismiss = close) {
         SheetHeader(track.title, stringResource(R.string.separator_dot, track.artist, track.album))
-        ActionItem(R.drawable.ic_queue_play_next, stringResource(R.string.action_play_next)) {
-            container.queue.playNext(listOf(track.id)); showMessage(playingNext); close()
-        }
-        ActionItem(R.drawable.ic_playlist_add, stringResource(R.string.action_add_to_queue)) {
-            container.queue.addToQueue(listOf(track.id)); showMessage(addedToQueue); close()
-        }
-        ActionItem(R.drawable.ic_playlist_play, stringResource(R.string.action_add_to_playlist)) {
-            state.addToPlaylist = listOf(track.id); close()
-        }
-        // Audiobook chapters live in their book, not among favourites, albums or artists.
+        // Audiobook chapters live in their book: never in music queues, playlists, favourites, albums or artists.
         if (track.isAudiobook) {
             ActionItem(R.drawable.ic_auto_stories, stringResource(R.string.action_go_to_book)) { close(); onOpenAlbum(track.albumKey) }
         } else {
+            ActionItem(R.drawable.ic_queue_play_next, stringResource(R.string.action_play_next)) {
+                container.queue.playNext(listOf(track.id)); showMessage(playingNext); close()
+            }
+            ActionItem(R.drawable.ic_playlist_add, stringResource(R.string.action_add_to_queue)) {
+                container.queue.addToQueue(listOf(track.id)); showMessage(addedToQueue); close()
+            }
+            ActionItem(R.drawable.ic_playlist_play, stringResource(R.string.action_add_to_playlist)) {
+                state.addToPlaylist = listOf(track.id); close()
+            }
             ActionItem(
                 if (isFavorite) R.drawable.ic_favorite_filled else R.drawable.ic_favorite,
                 stringResource(if (isFavorite) R.string.action_unfavorite else R.string.action_favorite),

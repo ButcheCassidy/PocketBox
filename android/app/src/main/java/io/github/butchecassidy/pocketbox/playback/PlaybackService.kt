@@ -222,6 +222,8 @@ class PlaybackService : MediaLibraryService() {
 
     private val serviceListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            // A book chapter reached through a shuffled queue (one saved before its folder became an audiobook folder).
+            if (exo.shuffleModeEnabled && MediaItems.bookKey(mediaItem) != null) exo.shuffleModeEnabled = false
             updateReplayGain()
             saveQueueSoon()
         }
@@ -282,6 +284,8 @@ class PlaybackService : MediaLibraryService() {
     /** Intercepts shuffle so turning it on puts the playing song first and plays every other song once. */
     private inner class PocketPlayer(private val player: ExoPlayer) : ForwardingPlayer(player) {
         override fun setShuffleModeEnabled(shuffleModeEnabled: Boolean) {
+            // Audiobooks always play in order, whichever controller (headphones, car, notification) asks.
+            if (shuffleModeEnabled && MediaItems.bookKey(player.currentMediaItem) != null) return
             if (shuffleModeEnabled && !player.shuffleModeEnabled) {
                 val count = player.mediaItemCount
                 player.setShuffleOrder(QueueShuffleOrder.startingAt(count, player.currentMediaItemIndex.takeIf { count > 0 }))
