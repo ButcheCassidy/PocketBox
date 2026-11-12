@@ -200,6 +200,17 @@ Android also adds one internal signature-level permission that only Pocket Box i
 
 Why Pixel 6 is the minimum: it's the oldest Pixel that runs Android 14, which Pocket Box and its USB DAC bit-perfect mode need, and the oldest one GrapheneOS still supports; and it runs 64-bit apps, so the app carries only 64-bit code and stays small. On the Pixel 8 and newer, GrapheneOS also uses hardware memory tagging, which catches memory bugs before they become security problems.
 
+**Heads up for Pixel 6 and 7 owners:** these phones are at or near the end of their security updates. Google's guaranteed updates end on these dates (from the [GrapheneOS FAQ](https://grapheneos.org/faq#device-lifetime)):
+
+| Device | Guaranteed updates until |
+|---|---|
+| Pixel 6, Pixel 6 Pro | October 2026 (already ended) |
+| Pixel 6a | July 2027 |
+| Pixel 7, Pixel 7 Pro | October 2027 |
+| Pixel 7a | May 2028 |
+
+After that, GrapheneOS may offer temporary extended support releases, but they can't include full security patches and are meant only as a last resort while you move to a newer phone. Pocket Box keeps working on these phones, but the phone itself stops getting full security fixes. The Pixel 8 and newer get 7 years of updates (Pixel 8 and 8 Pro until October 2030), so they're the better pick for the long ride.
+
 ## Saddle up
 
 1. Go to this repository's **Releases** page and download the latest `PocketBox-x.y.z.apk` and its `.sha256` file.
