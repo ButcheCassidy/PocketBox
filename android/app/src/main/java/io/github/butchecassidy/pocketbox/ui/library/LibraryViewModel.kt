@@ -82,11 +82,9 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     val lostRoots: StateFlow<ImmutableList<LibraryRoot>> =
         container.scanner.roots.map { roots -> roots.filterNot { it.isAccessible } }.immutable()
 
-    /** The tabs to show: the user's choice, with Audiobooks only once a folder is marked for them. */
-    val tabs: StateFlow<ImmutableList<LibraryTab>?> = combine(settingsFlow, container.scanner.roots) { s, roots ->
-        val hasBooks = roots.any { it.isAudiobooks }
-        s.visibleTabs.filter { it != LibraryTab.AUDIOBOOKS || hasBooks }.ifEmpty { listOf(LibraryTab.SONGS) }.toImmutableList()
-    }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    /** The tabs to show, in the user's order. */
+    val tabs: StateFlow<ImmutableList<LibraryTab>?> = settingsFlow.map { it.visibleTabs.toImmutableList() }
+        .distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     /** The tab to reopen on: the last one used, or Albums on the very first launch. */
     val initialTab: StateFlow<LibraryTab?> = combine(container.settings.lastTab, tabs) { last, visible ->
@@ -113,6 +111,11 @@ class LibraryViewModel(private val container: AppContainer) : ViewModel() {
     /** Re-grants a folder whose access was lost, then rescans. */
     fun regrant(uri: Uri) = container.appScope.launch {
         if (container.scanner.addFolder(uri)) container.scanner.scan()
+    }
+
+    /** A folder picked from the Audiobooks tab: added as an audiobook folder, then scanned. */
+    fun addAudiobookFolder(uri: Uri) = container.appScope.launch {
+        if (container.scanner.addAudiobookFolder(uri)) container.scanner.scan()
     }
 
     fun removeRoot(id: Long) = container.appScope.launch { container.scanner.removeFolder(id) }

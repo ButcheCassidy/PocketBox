@@ -140,6 +140,14 @@ class LibraryScanner(
             .sortedWith(compareBy(SortKeys.comparator) { it.name })
     }
 
+    /** Adds a folder from the picker straight away as an audiobook folder; false if Android refused. */
+    suspend fun addAudiobookFolder(treeUri: Uri): Boolean {
+        if (!addFolder(treeUri)) return false
+        val folder = withContext(io) { scanDao.foldersOnce().firstOrNull { it.treeUri == treeUri.toString() } } ?: return false
+        setAudiobookFolder(folder.id, true)
+        return true
+    }
+
     /** Marks a folder as audiobooks (kept apart from the music) or back to music; no rescan needed. */
     suspend fun setAudiobookFolder(folderId: Long, isAudiobooks: Boolean) = mutex.withLock {
         withContext(io) {

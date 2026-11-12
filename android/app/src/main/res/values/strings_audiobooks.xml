@@ -3,7 +3,8 @@
 <resources>
     <!-- Audiobooks -->
     <string name="audiobooks_empty_title">No audiobooks yet</string>
-    <string name="audiobooks_empty_body">Mark a folder as an audiobook folder in Settings › Library. Its books show up here, apart from your music.</string>
+    <string name="audiobooks_empty_body">Pick the folder that holds your audiobooks. Its books show up here, apart from your music. You can also turn a folder you already added into an audiobook folder in Settings › Library.</string>
+    <string name="add_audiobook_folder">Add audiobook folder</string>
     <string name="audiobook_folder">Audiobook folder</string>
     <string name="mark_audiobook_folder">Use as audiobook folder</string>
     <string name="audiobook_not_started">Not started</string>

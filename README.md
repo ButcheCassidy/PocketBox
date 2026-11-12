@@ -110,7 +110,7 @@ Common harmless extras (store IDs, encoder notes, ReplayGain values, cue sheets,
 When something is found, Pocket Box **holds that song back** and tells you. Under **Settings → Library → Held-back songs** you can see exactly what was found and where, and add the song anyway if you trust it. Pocket Box never opens or runs anything it finds. It only ever plays the audio.
 
 ### Audiobooks, kept apart
-Mark any of your folders as an **audiobook folder** (Settings → Library) and everything inside moves out of your music and into its own **Audiobooks** tab. Your albums, songs, artists, search and history stay music only.
+Audiobooks get their own **Audiobooks** tab in the library. Add a folder of books right from that tab, or mark a folder you already added as an **audiobook folder**, and everything inside moves out of your music and into the tab. Your albums, songs, artists, search and history stay music only.
 
 - Each book shows how far along you are and how much is left
 - **Your place is saved automatically** every few seconds, and whenever you pause, skip or close the app
@@ -123,13 +123,18 @@ Mark any of your folders as an **audiobook folder** (Settings → Library) and e
 
 <img src=".github/screenshots/audiobook-folder.jpg" width="240" align="right" alt="Settings, Library: the audiobook button sits next to each music folder, before the hide-subfolder and remove buttons">
 
-1. **Give your books their own folder** on the phone, for example `Audiobooks`, with one folder per book inside it. Pocket Box turns a whole folder into audiobooks, so keep your music somewhere else.
-2. Open Pocket Box and go to **Settings → Library**. Your folders are listed under **Music folders**.
-3. **New folder?** Tap **Add folder** and pick your audiobooks folder.
-4. Tap the **audiobook button** (the open book, circled in the picture) next to that folder. It lights up, and the folder now says **Audiobook folder**.
-5. Head back to the library: your books are waiting in the **Audiobooks** tab.
+**Give your books their own folder** on the phone first, for example `Audiobooks`, with one folder per book inside it. Pocket Box turns a whole folder into audiobooks, so keep your music somewhere else.
 
-**Already added the folder as music?** Skip step 3 and just tap its audiobook button; no rescan needed. Tap the button again any time to turn the folder back into music.
+**The quick way (a new folder):**
+1. Open the **Audiobooks** tab in the library.
+2. Tap **Add audiobook folder** and pick your audiobooks folder. That's it: your books appear in the tab.
+
+**Already added the folder as music?**
+1. Go to **Settings → Library**. Your folders are listed under **Music folders**.
+2. Tap the **audiobook button** (the open book, circled in the picture) next to that folder. It lights up, and the folder now says **Audiobook folder**. No rescan needed.
+3. Head back to the library: your books are waiting in the **Audiobooks** tab.
+
+Tap the audiobook button again any time to turn the folder back into music.
 
 **Adding more books later** is as easy as copying them into the audiobook folder. Pocket Box finds them the next time it scans (or tap **Rescan now** on the same screen).
 

@@ -592,17 +592,26 @@ private fun AudiobooksTab(vm: LibraryViewModel) {
     val navigator = LocalNavigator.current
     val sizes = LocalSizes.current
     val spacing = LocalSpacing.current
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> uri?.let(vm::addAudiobookFolder) }
     val state = rememberRestoredListState(LibraryTab.AUDIOBOOKS, vm) ?: return
     if (books.isEmpty()) {
         return EmptyState(
             R.drawable.ic_auto_stories,
             stringResource(R.string.audiobooks_empty_title),
             stringResource(R.string.audiobooks_empty_body),
-            actionLabel = stringResource(R.string.settings),
-            onAction = { navigator.go(Routes.settings(SettingsSection.LIBRARY)) },
+            actionLabel = stringResource(R.string.add_audiobook_folder),
+            onAction = { picker.launch(null) },
         )
     }
     LazyColumn(state = state, contentPadding = PaddingValues(bottom = LocalChromePadding.current.calculateBottomPadding())) {
+        item(key = "actions") {
+            Row(Modifier.padding(horizontal = spacing.screen, vertical = spacing.one)) {
+                FilledTonalButton(onClick = { picker.launch(null) }) {
+                    Icon(painterResource(R.drawable.ic_add), null)
+                    Text(stringResource(R.string.add_audiobook_folder), Modifier.padding(start = spacing.one))
+                }
+            }
+        }
         items(books, key = { it.key }) { book ->
             ListItem(
                 headlineContent = { Text(book.title, maxLines = 1, overflow = TextOverflow.Ellipsis) },
