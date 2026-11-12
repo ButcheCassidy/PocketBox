@@ -443,6 +443,8 @@ class LibraryScanner(
             "folder.jpg", "folder.jpeg", "folder.png", "folder.webp",
             "front.jpg", "front.jpeg", "front.png", "front.webp",
         )
-        val discFolder = Regex("^(cd|disc|disk)\\s*\\d{1,2}$", RegexOption.IGNORE_CASE)
     }
 }
+
+/** Disc folders ("CD1", "Disc 2" …) whose files belong to the album, or book, in the folder above. */
+internal val discFolder = Regex("^(cd|disc|disk)\\s*\\d{1,2}$", RegexOption.IGNORE_CASE)

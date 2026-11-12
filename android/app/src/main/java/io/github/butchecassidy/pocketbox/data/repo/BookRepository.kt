@@ -2,6 +2,8 @@
 package io.github.butchecassidy.pocketbox.data.repo
 
 import io.github.butchecassidy.pocketbox.data.db.BookDao
+import io.github.butchecassidy.pocketbox.data.scan.discFolder
+import io.github.butchecassidy.pocketbox.data.scan.TrackFactory
 import io.github.butchecassidy.pocketbox.domain.model.Audiobook
 import io.github.butchecassidy.pocketbox.domain.model.BookProgress
 import io.github.butchecassidy.pocketbox.domain.model.Bookmark
@@ -24,7 +26,7 @@ class BookRepository(private val dao: BookDao, private val cpu: CoroutineDispatc
             val first = chapters.first()
             Audiobook(
                 key = key,
-                title = first.album,
+                title = first.album.takeUnless { it == TrackFactory.UNKNOWN_ALBUM } ?: bookFolderName(first.folderPath),
                 author = first.albumArtist,
                 art = chapters.firstNotNullOfOrNull { it.art },
                 chapters = chapters,
@@ -34,6 +36,13 @@ class BookRepository(private val dao: BookDao, private val cpu: CoroutineDispatc
             compareByDescending<Audiobook> { it.progress?.updatedAtMs ?: Long.MIN_VALUE }.thenBy(SortKeys.comparator) { it.title },
         )
     }.flowOn(cpu)
+
+    /** An untagged book is named after its folder ("Books/The Hobbit/CD1" → "The Hobbit"). */
+    private fun bookFolderName(path: String): String {
+        val parts = path.split('/')
+        val last = parts.last()
+        return if (discFolder.matches(last) && parts.size > 1) parts[parts.size - 2] else last
+    }
 
     fun book(key: String): Flow<Audiobook?> = books.map { list -> list.firstOrNull { it.key == key } }.distinctUntilChanged()
 

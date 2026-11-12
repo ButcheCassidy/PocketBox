@@ -39,15 +39,19 @@ class BookProgressTracker(
 
     override fun onPositionDiscontinuity(oldPosition: Player.PositionInfo, newPosition: Player.PositionInfo, reason: Int) {
         if (reason == Player.DISCONTINUITY_REASON_SEEK) saveNow()
+        // The chapter left the queue (say, an album was played instead): keep the spot it had.
+        if (reason == Player.DISCONTINUITY_REASON_REMOVE) save(oldPosition.mediaItem, oldPosition.positionMs)
     }
 
     /** Saves the current chapter's spot right away, if a chapter is loaded. Main thread only. */
     fun saveNow() {
         val exo = player()
-        val item = exo.currentMediaItem ?: return
+        save(exo.currentMediaItem, exo.currentPosition)
+    }
+
+    private fun save(item: MediaItem?, positionMs: Long) {
         val bookKey = MediaItems.bookKey(item) ?: return
-        val trackId = MediaItems.trackId(item.mediaId) ?: return
-        val positionMs = exo.currentPosition
+        val trackId = MediaItems.trackId(item?.mediaId) ?: return
         saveScope.launch { saveOrder.withLock { save(bookKey, trackId, positionMs) } }
     }
 
