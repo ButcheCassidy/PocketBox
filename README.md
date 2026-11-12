@@ -242,6 +242,17 @@ Pocket Box can't reach the internet, reads only the folders you give it, treats 
 - **Formats Android reads for Pocket Box** (Matroska audio, raw AAC) show fewer quality details than the formats it reads itself.
 - **Nothing online, by design:** no streaming, no downloaded artwork or lyrics, no update checks.
 
+## A word on GrapheneOS facts
+
+Details about GrapheneOS in this README (supported phones, update end dates, security features) were correct when written, but GrapheneOS moves faster than this page, and this README won't always be updated to match the latest GrapheneOS facts and versions. **Do your own research** before you rely on them, straight from the source:
+
+- [GrapheneOS FAQ](https://grapheneos.org/faq): supported devices and how long each one gets updates
+- [Releases](https://grapheneos.org/releases): the current versions and what changed
+- [Features](https://grapheneos.org/features): what GrapheneOS adds over stock Android
+- [Install guide](https://grapheneos.org/install/): how to install it on your Pixel
+
+What this README **will** always keep up to date: how to use Pocket Box itself, including step-by-step instructions for every new feature.
+
 ## License
 
 Copyright (c) 2026 ButcheCassidy - The Nomadic Rebel.
