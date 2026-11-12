@@ -73,6 +73,8 @@
     <string name="info_file">File</string>
     <string name="info_folder">Folder</string>
     <string name="info_replaygain">ReplayGain</string>
+    <string name="info_gain_track">Track %1$s</string>
+    <string name="info_gain_album">Album %1$s</string>
     <string name="info_not_stated">Not stated in file</string>
     <string name="bitrate_constant">%1$s (constant)</string>
     <string name="bitrate_variable">%1$s (variable)</string>

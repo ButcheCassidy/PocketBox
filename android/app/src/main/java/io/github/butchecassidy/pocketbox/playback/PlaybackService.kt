@@ -71,6 +71,9 @@ class PlaybackService : MediaLibraryService() {
     private var errorsInARow = 0
     private var pausedByDisconnect = false
 
+    /** The music's repeat mode, put aside while book chapters play and given back to the next song. */
+    private var musicRepeatMode: Int? = null
+
     override fun onCreate() {
         super.onCreate()
         container = (application as PocketBoxApp).container
@@ -152,8 +155,14 @@ class PlaybackService : MediaLibraryService() {
         if (exo.mediaItemCount > 0) return // a controller already started something
         exo.setMediaItems(restored.items, restored.index, restored.positionMs)
         restored.shuffle?.let { exo.setShuffleOrder(QueueShuffleOrder(it)) }
-        exo.shuffleModeEnabled = restored.shuffleEnabled
-        exo.repeatMode = restored.repeatMode
+        // A restored book plays straight through; the music's repeat waits for the next song.
+        val isBook = MediaItems.bookKey(exo.currentMediaItem) != null
+        exo.shuffleModeEnabled = restored.shuffleEnabled && !isBook
+        if (isBook) {
+            musicRepeatMode = restored.repeatMode.takeIf { it != Player.REPEAT_MODE_OFF }
+        } else {
+            exo.repeatMode = restored.repeatMode
+        }
         exo.prepare()
     }
 
@@ -222,8 +231,17 @@ class PlaybackService : MediaLibraryService() {
 
     private val serviceListener = object : Player.Listener {
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            // A book chapter reached through a shuffled queue (one saved before its folder became an audiobook folder).
-            if (exo.shuffleModeEnabled && MediaItems.bookKey(mediaItem) != null) exo.shuffleModeEnabled = false
+            // Books always play straight through; music gets its repeat back afterwards.
+            if (MediaItems.bookKey(mediaItem) != null) {
+                if (exo.shuffleModeEnabled) exo.shuffleModeEnabled = false
+                if (exo.repeatMode != Player.REPEAT_MODE_OFF) {
+                    musicRepeatMode = exo.repeatMode
+                    exo.repeatMode = Player.REPEAT_MODE_OFF
+                }
+            } else if (mediaItem != null) {
+                musicRepeatMode?.let { exo.repeatMode = it }
+                musicRepeatMode = null
+            }
             updateReplayGain()
             saveQueueSoon()
         }
@@ -291,6 +309,12 @@ class PlaybackService : MediaLibraryService() {
                 player.setShuffleOrder(QueueShuffleOrder.startingAt(count, player.currentMediaItemIndex.takeIf { count > 0 }))
             }
             super.setShuffleModeEnabled(shuffleModeEnabled)
+        }
+
+        override fun setRepeatMode(repeatMode: Int) {
+            // A chapter never loops, whichever controller asks.
+            if (repeatMode != Player.REPEAT_MODE_OFF && MediaItems.bookKey(player.currentMediaItem) != null) return
+            super.setRepeatMode(repeatMode)
         }
     }
 

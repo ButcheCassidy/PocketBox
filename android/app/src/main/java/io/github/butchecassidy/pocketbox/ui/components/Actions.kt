@@ -197,8 +197,8 @@ fun TrackInfoSheet(track: Track, onDismiss: () -> Unit) {
             QualityDetails(track.quality)
             val rg = track.replayGain
             val gain = listOfNotNull(
-                rg.trackGainDb?.let { "Track ${Format.decibels(it)}" },
-                rg.albumGainDb?.let { "Album ${Format.decibels(it)}" },
+                rg.trackGainDb?.let { stringResource(R.string.info_gain_track, Format.decibels(it)) },
+                rg.albumGainDb?.let { stringResource(R.string.info_gain_album, Format.decibels(it)) },
             ).joinToString(", ")
             InfoRow(stringResource(R.string.info_replaygain), gain.ifEmpty { stringResource(R.string.info_not_stated) })
             InfoRow(stringResource(R.string.info_file), track.fileName)

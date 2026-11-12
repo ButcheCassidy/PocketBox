@@ -29,8 +29,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -493,13 +493,12 @@ fun LyricsView(
                 // Where the lyrics are "at": the song's position moved by the user's timing fix.
                 val lyricsMs = positionMs + offsetMs
                 val current = lyrics.indexAt(lyricsMs)
-                val list = rememberLazyListState()
+                val list = remember(lyrics) { LazyListState() }
                 val reduceMotion = LocalReduceMotion.current
-                LaunchedEffect(current) {
-                    if (current >= 0) {
-                        val target = (current - LYRIC_CONTEXT_LINES).coerceAtLeast(0)
-                        if (reduceMotion) list.scrollToItem(target) else list.animateScrollToItem(target)
-                    }
+                LaunchedEffect(lyrics, current) {
+                    // Before the first line (song start, or a seek back) the list returns to the top.
+                    val target = (current - LYRIC_CONTEXT_LINES).coerceAtLeast(0)
+                    if (reduceMotion) list.scrollToItem(target) else list.animateScrollToItem(target)
                 }
                 val colors = MaterialTheme.colorScheme
                 LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = list, horizontalAlignment = Alignment.CenterHorizontally) {

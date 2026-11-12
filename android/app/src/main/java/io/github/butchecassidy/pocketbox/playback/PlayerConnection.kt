@@ -280,12 +280,11 @@ class PlayerConnection(private val context: Context, private val scope: Coroutin
         c.prepare()
     }
 
-    /** Replaces the queue and starts playing at [startIndex], [startPositionMs] into it; [isBook] turns repeat off. */
-    fun setQueue(trackIds: List<Long>, startIndex: Int, shuffle: Boolean, startPositionMs: Long = 0, isBook: Boolean = false) = command { c ->
+    /** Replaces the queue and starts playing at [startIndex], [startPositionMs] into it. */
+    fun setQueue(trackIds: List<Long>, startIndex: Int, shuffle: Boolean, startPositionMs: Long = 0) = command { c ->
         if (trackIds.isEmpty()) return@command
         c.setMediaItems(trackIds.map { MediaItems.request(it) }, startIndex.coerceIn(0, trackIds.lastIndex), startPositionMs.coerceAtLeast(0))
         c.shuffleModeEnabled = shuffle
-        if (isBook) c.repeatMode = Player.REPEAT_MODE_OFF
         c.prepare()
         c.play()
     }

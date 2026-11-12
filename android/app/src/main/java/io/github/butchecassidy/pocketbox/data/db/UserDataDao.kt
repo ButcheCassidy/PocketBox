@@ -34,13 +34,13 @@ interface UserDataDao {
     @Query(
         "SELECT p.id, p.name, COUNT(e.id) AS trackCount, COALESCE(SUM(t.durationMs), 0) AS durationMs, " +
             "(SELECT t2.artUri FROM playlist_entries e2 JOIN tracks t2 ON t2.id = e2.trackId " +
-            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL ORDER BY e2.position LIMIT 1) AS artUri, " +
+            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL AND t2.isHidden = 0 AND t2.isAudiobook = 0 ORDER BY e2.position LIMIT 1) AS artUri, " +
             "(SELECT t2.artSource FROM playlist_entries e2 JOIN tracks t2 ON t2.id = e2.trackId " +
-            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL ORDER BY e2.position LIMIT 1) AS artSource, " +
+            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL AND t2.isHidden = 0 AND t2.isAudiobook = 0 ORDER BY e2.position LIMIT 1) AS artSource, " +
             "(SELECT t2.artVersion FROM playlist_entries e2 JOIN tracks t2 ON t2.id = e2.trackId " +
-            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL ORDER BY e2.position LIMIT 1) AS artVersion " +
-            "FROM playlists p LEFT JOIN playlist_entries e ON e.playlistId = p.id " +
-            "LEFT JOIN tracks t ON t.id = e.trackId GROUP BY p.id ORDER BY p.name COLLATE NOCASE",
+            "WHERE e2.playlistId = p.id AND t2.artUri IS NOT NULL AND t2.isHidden = 0 AND t2.isAudiobook = 0 ORDER BY e2.position LIMIT 1) AS artVersion " +
+            "FROM playlists p LEFT JOIN (playlist_entries e JOIN tracks t ON t.id = e.trackId " +
+            "AND t.isHidden = 0 AND t.isAudiobook = 0) ON e.playlistId = p.id GROUP BY p.id ORDER BY p.name COLLATE NOCASE",
     )
     fun playlists(): Flow<List<PlaylistSummaryRow>>
 

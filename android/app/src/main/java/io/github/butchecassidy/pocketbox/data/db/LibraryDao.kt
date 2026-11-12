@@ -51,13 +51,13 @@ interface LibraryDao {
     @Query("SELECT $TRACK_COLUMNS FROM tracks WHERE id = :id")
     fun track(id: Long): Flow<TrackRow?>
 
-    @Query("SELECT id, documentId FROM tracks WHERE documentId IN (:documentIds) AND isHidden = 0")
+    @Query("SELECT id, documentId FROM tracks WHERE documentId IN (:documentIds) AND isHidden = 0 AND isAudiobook = 0")
     suspend fun idsByDocumentIds(documentIds: List<String>): List<DocumentIdRow>
 
     @Query("SELECT documentId FROM tracks WHERE id = :id")
     suspend fun documentId(id: Long): String?
 
-    @Query("SELECT COUNT(*) FROM tracks WHERE isHidden = 0")
+    @Query("SELECT COUNT(*) FROM tracks WHERE isHidden = 0 AND isAudiobook = 0")
     fun songCount(): Flow<Int>
 
     // ---- Search ----

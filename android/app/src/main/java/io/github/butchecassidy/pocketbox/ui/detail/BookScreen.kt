@@ -21,6 +21,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -44,8 +45,10 @@ import io.github.butchecassidy.pocketbox.ui.components.LocalActions
 import io.github.butchecassidy.pocketbox.ui.components.PocketIconButton
 import io.github.butchecassidy.pocketbox.ui.components.SectionHeader
 import io.github.butchecassidy.pocketbox.ui.components.TrackRow
+import io.github.butchecassidy.pocketbox.ui.navigation.LocalNavigator
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSizes
 import io.github.butchecassidy.pocketbox.ui.theme.LocalSpacing
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -59,6 +62,12 @@ fun BookScreen(bookKey: String) {
     val book by remember(bookKey) { container.books.book(bookKey) }.collectAsStateWithLifecycle(null)
     val bookmarks by remember(bookKey) { container.books.bookmarks(bookKey) }.collectAsStateWithLifecycle(emptyList())
     val player by container.player.state.collectAsStateWithLifecycle()
+    val navigator = LocalNavigator.current
+    // A book that's gone (its folder removed or switched back to music) closes its page.
+    LaunchedEffect(bookKey) {
+        container.books.book(bookKey).first { it == null }
+        navigator.back()
+    }
     val current = book ?: return DetailScaffold("") {}
     val ids = current.chapters.map { it.id }
     val playAt = { trackId: Long, positionMs: Long ->

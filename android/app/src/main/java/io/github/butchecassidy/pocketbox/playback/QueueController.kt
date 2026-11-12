@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 /** A tap waiting for the user to confirm "Clear queue?". */
-data class PendingPlay(val trackIds: List<Long>, val startIndex: Int, val shuffle: Boolean, val startPositionMs: Long = 0, val isBook: Boolean = false)
+data class PendingPlay(val trackIds: List<Long>, val startIndex: Int, val shuffle: Boolean, val startPositionMs: Long = 0)
 
 /** Things the UI should tell the user about (as a snackbar). */
 sealed interface QueueEvent {
@@ -46,7 +46,7 @@ class QueueController(
 
     /** An audiobook: its chapters in order, starting [positionMs] into chapter [index]. Never shuffled or repeated. */
     fun playBook(chapterIds: List<Long>, index: Int, positionMs: Long) =
-        request(PendingPlay(chapterIds, index, shuffle = false, startPositionMs = positionMs, isBook = true))
+        request(PendingPlay(chapterIds, index, shuffle = false, startPositionMs = positionMs))
 
     /** A "Shuffle" button: replaces the queue the same way and turns shuffle on. */
     fun shufflePlay(trackIds: List<Long>) {
@@ -78,7 +78,7 @@ class QueueController(
     private fun replace(play: PendingPlay) {
         val hadQueue = player.queue.value.entries.isNotEmpty()
         remember()
-        player.setQueue(play.trackIds, play.startIndex, play.shuffle, play.startPositionMs, play.isBook)
+        player.setQueue(play.trackIds, play.startIndex, play.shuffle, play.startPositionMs)
         if (hadQueue) _events.tryEmit(QueueEvent.Replaced)
     }
 
